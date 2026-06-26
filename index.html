@@ -1,0 +1,600 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>西門町大富翁 - 敏捷走讀版 V4</title>
+    <style>
+        :root {
+            --primary: #008080; /* 青色組織色調 */
+            --secondary: #20b2aa;
+            --chance: #ffb6c1;
+            --fate: #9370db;
+            --spot: #87ceeb;
+            --board-bg: #e6f0eb;
+            --space-bg: #fff;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f4f7f6;
+            margin: 0;
+            padding: 20px;
+            color: #333;
+        }
+        h1 { text-align: center; color: var(--primary); margin-top: 0; }
+        
+        .main-layout {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        /* 左側控制面板與地圖 */
+        .sidebar {
+            flex: 1;
+            min-width: 350px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        .panel-box {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        
+        /* 地圖區塊 */
+        .map-box {
+            background: white;
+            padding: 15px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            position: relative;
+            flex-grow: 1;
+            min-height: 350px;
+            display: flex;
+            flex-direction: column;
+        }
+        .map-container {
+            width: 100%;
+            flex-grow: 1;
+            background: #eee;
+            border-radius: 6px;
+            overflow: hidden;
+            border: 2px solid var(--primary);
+        }
+        iframe { width: 100%; height: 100%; border: none; }
+        
+        /* 全螢幕地圖樣式 */
+        .fullscreen-map {
+            position: fixed !important;
+            top: 0; left: 0;
+            width: 100vw !important;
+            height: 100vh !important;
+            z-index: 9999;
+            padding: 0 !important;
+            border-radius: 0 !important;
+        }
+        .fullscreen-map .map-container {
+            border: none;
+            border-radius: 0;
+        }
+
+        /* 右側大富翁棋盤 */
+        .board-container {
+            flex: 2;
+            min-width: 650px;
+            background: var(--board-bg);
+            padding: 10px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            grid-template-rows: repeat(5, 1fr);
+            gap: 5px;
+            aspect-ratio: 1 / 1;
+        }
+
+        .input-group { display: flex; gap: 10px; margin-bottom: 10px; align-items: center; }
+        input { padding: 8px; border: 1px solid #ccc; border-radius: 4px; flex: 1; min-width: 0; }
+        button {
+            padding: 8px 12px; background-color: var(--primary); color: white;
+            border: none; border-radius: 4px; cursor: pointer; font-weight: bold;
+        }
+        button:hover { background-color: var(--secondary); }
+        button:disabled { background-color: #ccc; cursor: not-allowed; }
+        
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 0.9em; }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: center; }
+        th { background-color: var(--primary); color: white; }
+
+        /* 棋盤格子樣式 */
+        .space {
+            background: var(--space-bg);
+            border: 2px solid #ccc;
+            border-radius: 5px;
+            padding: 5px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            text-align: center;
+            font-size: 0.8em;
+            position: relative;
+        }
+        .space.active { border-color: #ff8c00; background-color: #fff3e0; box-shadow: inset 0 0 10px #ffe4b5; }
+        .space-header {
+            width: 100%; padding: 3px 0; font-weight: bold; border-radius: 3px 3px 0 0;
+            margin-bottom: 5px; font-size: 1.05em; text-align: center;
+        }
+        .spot-header { background: var(--spot); color: #000; }
+        .chance-header { background: var(--chance); color: #000; }
+        .fate-header { background: var(--fate); color: #fff; }
+        .start-header { background: #2ecc71; color: #fff; }
+        
+        /* 玩家棋子 */
+        .tokens { display: flex; flex-wrap: wrap; gap: 2px; justify-content: center; margin-top: auto; padding-top: 5px; }
+        .player-token {
+            width: 22px; height: 22px; color: white; border-radius: 50%;
+            line-height: 22px; font-size: 12px; font-weight: bold; text-align: center;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+
+        /* 棋盤座標定位 (口字型 5x5) */
+        #space-0 { grid-column: 1; grid-row: 1; }
+        #space-1 { grid-column: 2; grid-row: 1; }
+        #space-2 { grid-column: 3; grid-row: 1; }
+        #space-3 { grid-column: 4; grid-row: 1; }
+        #space-4 { grid-column: 5; grid-row: 1; }
+        #space-5 { grid-column: 5; grid-row: 2; }
+        #space-6 { grid-column: 5; grid-row: 3; }
+        #space-7 { grid-column: 5; grid-row: 4; }
+        #space-8 { grid-column: 5; grid-row: 5; }
+        #space-9 { grid-column: 4; grid-row: 5; }
+        #space-10 { grid-column: 3; grid-row: 5; }
+        #space-11 { grid-column: 2; grid-row: 5; }
+        #space-12 { grid-column: 1; grid-row: 5; }
+        #space-13 { grid-column: 1; grid-row: 4; }
+        #space-14 { grid-column: 1; grid-row: 3; }
+        #space-15 { grid-column: 1; grid-row: 2; }
+
+        /* 中間傳統遊戲版面 */
+        .center-deck-area {
+            grid-column: 2 / 5;
+            grid-row: 2 / 5;
+            background: #fdfaf4;
+            border: 3px dashed var(--primary);
+            border-radius: 8px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 10px;
+            position: relative;
+        }
+        .center-title {
+            font-size: 1.6em;
+            font-weight: bold;
+            color: #b22222;
+            margin-bottom: 20px;
+            letter-spacing: 2px;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.1);
+        }
+        .card-decks {
+            display: flex;
+            gap: 30px;
+            width: 100%;
+            justify-content: center;
+        }
+        
+        .deck {
+            width: 100px;
+            height: 65px;
+            border-radius: 6px;
+            border: 2px solid #333;
+            background-color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 1.3em;
+            position: relative;
+        }
+        .chance-deck {
+            color: #d81b60;
+            box-shadow: -5px 5px 0 var(--chance), -5px 5px 0 2px #333;
+            transform: rotate(-5deg);
+        }
+        .fate-deck {
+            color: #4b0082;
+            box-shadow: 5px 5px 0 var(--fate), 5px 5px 0 2px #333;
+            transform: rotate(5deg);
+        }
+        
+        .deck.highlight {
+            animation: pulse 0.8s infinite alternate;
+            border: 3px solid #ff8c00;
+            z-index: 10;
+        }
+        @keyframes pulse {
+            from { transform: scale(1) rotate(calc(var(--r, 0)*1deg)); box-shadow: 0 0 5px #ff8c00; }
+            to { transform: scale(1.1) rotate(calc(var(--r, 0)*1deg)); box-shadow: 0 0 15px #ff8c00; }
+        }
+
+        /* 彈出視窗 (Modal) */
+        .modal {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.6); justify-content: center; align-items: center; z-index: 10000;
+        }
+        .modal-content {
+            background: white; padding: 25px; border-radius: 10px; max-width: 500px; width: 90%;
+            text-align: center; box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        }
+        .modal-content h2 { color: var(--primary); margin-top: 0; }
+        .card-graphic {
+            padding: 20px;
+            margin: 15px 0;
+            border-radius: 8px;
+            font-weight: bold;
+            box-shadow: inset 0 0 10px rgba(0,0,0,0.1);
+        }
+        .answer-box {
+            display: none; margin-top: 15px; padding: 15px; background: #f0f8ff;
+            border-left: 5px solid var(--primary); text-align: left;
+        }
+        .controls { display: flex; gap: 10px; justify-content: center; margin-top: 20px; }
+    </style>
+</head>
+<body>
+
+<h1>西門町敏捷走讀大富翁</h1>
+
+<div class="main-layout">
+    <div class="sidebar">
+        <div class="panel-box">
+            <h3>1. 玩家報到 (身心估點)</h3>
+            <div class="input-group">
+                <input type="text" id="playerName" placeholder="姓名 / 暱稱">
+                <input type="number" id="playerEnergy" placeholder="估點 (1-10)" min="1" max="10" style="max-width: 90px;">
+                <button onclick="addPlayer()" style="white-space: nowrap; flex-shrink: 0;">加 入</button>
+            </div>
+            
+            <table id="playerTable">
+                <thead>
+                    <tr>
+                        <th>玩家</th>
+                        <th>估點</th>
+                        <th>方石</th>
+                        <th>位置</th>
+                    </tr>
+                </thead>
+                <tbody id="playerList"></tbody>
+            </table>
+
+            <hr style="margin: 15px 0; border: none; border-top: 1px solid #ddd;">
+
+            <h3>2. 進行走讀</h3>
+            <p id="turnIndicator" style="font-weight: bold; color: var(--primary); font-size: 1.05em; margin-bottom: 10px;">請先加入玩家！</p>
+            <button id="rollBtn" onclick="rollDice()" style="width: 100%; padding: 12px; font-size: 1.1em;" disabled>🎲 擲骰子前進 (1-6步)</button>
+        </div>
+
+        <div class="map-box" id="mapBox">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                <h3 style="margin: 0;">📍 實景地圖導覽</h3>
+                <button id="fullscreenBtn" onclick="toggleMapFullscreen()" style="background-color: #34495e; color: white; padding: 4px 8px; font-size: 0.85em; border: none; border-radius: 4px; cursor: pointer;">🔍 全螢幕切換</button>
+            </div>
+            <div class="map-container">
+                <iframe id="gmap" src="https://maps.google.com/maps?q=25.0435,121.5015&hl=zh-TW&z=16&output=embed"></iframe>
+            </div>
+        </div>
+    </div>
+
+    <div class="board-container" id="gameBoard">
+        <div class="center-deck-area">
+            <div class="center-title">西門町大富翁</div>
+            <div class="card-decks">
+                <div class="deck chance-deck" id="deck-chance" style="--r: -5;">機 會</div>
+                <div class="deck fate-deck" id="deck-fate" style="--r: 5;">命 運</div>
+            </div>
+        </div>
+        </div>
+</div>
+
+<div class="modal" id="eventModal">
+    <div class="modal-content">
+        <h2 id="modalTitle">標題</h2>
+        <div id="cardGraphic" class="card-graphic">卡片類型</div>
+        <p id="modalQuestion" style="font-size: 1.1em; line-height: 1.5; margin: 15px 0;"></p>
+        
+        <div id="answerBox" class="answer-box">
+            <strong style="color: var(--primary);">解答 / 引導提示：</strong>
+            <p id="modalAnswer" style="margin-bottom: 0;"></p>
+        </div>
+
+        <div class="controls">
+            <button id="showAnswerBtn" onclick="showAnswer()">查看提示 / 解答</button>
+            <button id="rewardBtn" onclick="awardStone()">🎁 討論分享完畢！獲得 1 方石</button>
+            <button onclick="closeModal()" style="background: #95a5a6; color: white; border: none; padding: 8px 12px; border-radius: 4px; cursor: pointer;">關閉</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    // 隱藏具體內容的關卡座標
+    const boardSpaces = [
+        { type: 'start', name: 'Meander Taipei', lat: 25.0435, lng: 121.5015 },
+        { type: 'chance', name: '機 會', lat: null, lng: null },
+        { type: 'spot', name: '西門紅樓', lat: 25.0421, lng: 121.5070 },
+        { type: 'fate', name: '命 運', lat: null, lng: null },
+        { type: 'spot', name: '西門電影街', lat: 25.0443, lng: 121.5034 },
+        { type: 'chance', name: '機 會', lat: null, lng: null },
+        { type: 'spot', name: '美國街塗鴉', lat: 25.0440, lng: 121.5045 },
+        { type: 'fate', name: '命 運', lat: null, lng: null },
+        { type: 'spot', name: '萬年商業大樓', lat: 25.0435, lng: 121.5060 },
+        { type: 'chance', name: '機 會', lat: null, lng: null },
+        { type: 'spot', name: '台北天后宮', lat: 25.0428, lng: 121.5063 },
+        { type: 'fate', name: '命 運', lat: null, lng: null },
+        { type: 'spot', name: '6號彩虹路面', lat: 25.0428, lng: 121.5080 },
+        { type: 'chance', name: '機 會', lat: null, lng: null },
+        { type: 'spot', name: '剝皮寮歷史街區', lat: 25.0366, lng: 121.5019 },
+        { type: 'end', name: 'CollaPlay (終點)', lat: 25.0430, lng: 121.5060 }
+    ];
+
+    // 機會卡牌池 (貍想學院敏捷與核心概念)
+    const chanceCards = [
+        { title: '【張力會議 Tension】', q: '「張力不是壓力，而是看見需求。」請分享一個近期在專案或生活中遇到的張力（預期與現實的落差），你當時是如何處理的？', a: '試著運用非暴力溝通，將情緒抽離並轉化為具體的機制調整需求。' },
+        { title: '【敏捷迭代 Agile】', q: '「短交付，快迭代。」請分享一個你曾經先求有再求好，透過不斷修正而完成的挑戰案例。', a: '青色組織鼓勵在安全範圍內試錯，每一次迅速迭代都是成長的基石。' },
+        { title: '【資訊透明化 Transparency】', q: '「透明不是監視，是為了讓理解成為可能。」請分享一個因資訊不對稱或不透明造成的團隊誤會案例。', a: '透明的看板與流程能消除無謂的猜忌，讓夥伴看見彼此的真實負荷。' },
+        { title: '【進化宗旨 Purpose】', q: '請分享你目前個人或工作專案中的「北極星（核心目標）」是什麼？你為自己設定了什麼不容觸犯的底線？', a: '進化宗旨帶領我們在不穩定的環境中隨時對齊目標，不忘初心。' }
+    ];
+
+    // 命運卡牌池 (身心完整與團隊自律概念)
+    const fateCards = [
+        { title: '【身心完整 Wholeness】', q: '你曾在工作或學習團隊中「隱藏真實的自己」嗎？我們應該如何打造一個可以讓人安全展現脆弱的環境？', a: '不再切割專業角色與真實自我，容許情緒流動與自主調節是身心完整的基礎。' },
+        { title: '【能量估點 Checking】', q: '一到十分，你現在的身心估點（心力狀態）是幾分？當你能量低落時，你希望團隊如何實質支援你？', a: '隨時覺察自己與夥伴的能量狀態，拒絕盲目追求齊頭式的絕對公平。' },
+        { title: '【內在驅動 Autonomy】', q: '在缺乏外部獎勵與鞭策（例如沒有方石、考成或續聘壓力）時，你通常如何維持自發學習的動能？', a: '引導自己從依賴外在指標的他律，走向源自本心召喚的自律。' },
+        { title: '【團隊復盤 Retrospective】', q: '「關於人生或團隊問題，我一律建議復盤。」請回顧近期生活中一個不夠完美的決策，如果能重來一次，你會做出什麼修正？', a: '復盤不是為了究責或打分數，而是將歷程點滴轉換為未來的航行智慧。' }
+    ];
+
+    let players = [];
+    let currentPlayerIndex = 0;
+    const colors = ['#e74c3c', '#3498db', '#9b59b6', '#f1c40f', '#e67e22', '#2ecc71'];
+
+    // 確保 DOM 完全載入後才初始化棋盤
+    window.addEventListener('DOMContentLoaded', initBoard);
+
+    function initBoard() {
+        const boardEl = document.getElementById('gameBoard');
+        if (!boardEl) return;
+        
+        boardSpaces.forEach((space, index) => {
+            const div = document.createElement('div');
+            div.className = `space ${space.type}`;
+            div.id = `space-${index}`;
+            
+            let headerClass = 'spot-header';
+            let icon = '📍';
+            if (index === 0 || index === 15) headerClass = 'start-header';
+            else if (space.type === 'chance') { headerClass = 'chance-header'; icon = '❓'; }
+            else if (space.type === 'fate') { headerClass = 'fate-header'; icon = '🔮'; }
+            
+            div.innerHTML = `
+                <div class="space-header ${headerClass}">${icon} ${index}</div>
+                <div style="font-weight:bold; margin-bottom:5px;">${space.name}</div>
+                <div class="tokens" id="tokens-${index}"></div>
+            `;
+            boardEl.appendChild(div);
+        });
+    }
+
+    // 加入玩家
+    function addPlayer() {
+        const name = document.getElementById('playerName').value;
+        const energy = document.getElementById('playerEnergy').value;
+        if (!name || !energy) { alert('請輸入姓名與身心估點！'); return; }
+
+        players.push({
+            id: players.length,
+            name: name,
+            energy: parseInt(energy),
+            stones: 0,
+            position: 0,
+            color: colors[players.length % colors.length]
+        });
+
+        document.getElementById('playerName').value = '';
+        document.getElementById('playerEnergy').value = '';
+        
+        updateUI();
+        if (players.length > 0) {
+            document.getElementById('rollBtn').disabled = false;
+            updateTurnIndicator();
+        }
+    }
+
+    // 擲骰子前進 1-6 步
+    function rollDice() {
+        if (players.length === 0) return;
+        const rollBtn = document.getElementById('rollBtn');
+        rollBtn.disabled = true;
+
+        // 清除牌堆高亮
+        document.getElementById('deck-chance').classList.remove('highlight');
+        document.getElementById('deck-fate').classList.remove('highlight');
+
+        let count = 0;
+        let rollInterval = setInterval(() => {
+            rollBtn.innerText = `🎲 擲骰中... ${Math.floor(Math.random() * 6) + 1}`;
+            count++;
+            if (count > 10) {
+                clearInterval(rollInterval);
+                
+                const diceRoll = Math.floor(Math.random() * 6) + 1; 
+                rollBtn.innerText = `🎲 擲出了 ${diceRoll} 步！`;
+                
+                let player = players[currentPlayerIndex];
+                player.position += diceRoll;
+                
+                if (player.position >= boardSpaces.length - 1) {
+                    player.position = boardSpaces.length - 1; 
+                }
+
+                updateUI();
+                
+                const currentSpace = boardSpaces[player.position];
+                if (currentSpace.lat && currentSpace.lng) {
+                    updateMap(currentSpace.lat, currentSpace.lng);
+                }
+                
+                // 高亮對應卡牌堆
+                if (currentSpace.type === 'chance') {
+                    document.getElementById('deck-chance').classList.add('highlight');
+                } else if (currentSpace.type === 'fate') {
+                    document.getElementById('deck-fate').classList.add('highlight');
+                }
+                
+                setTimeout(() => {
+                    triggerEvent(player, player.position);
+                    currentPlayerIndex = (currentPlayerIndex + 1) % players.length;
+                    updateTurnIndicator();
+                    rollBtn.disabled = false;
+                    rollBtn.innerText = `🎲 擲骰子前進 (1-6步)`;
+                }, 1200);
+            }
+        }, 50);
+    }
+
+    // 更新地圖
+    function updateMap(lat, lng) {
+        if(lat && lng) {
+            const iframe = document.getElementById('gmap');
+            iframe.src = `https://maps.google.com/maps?q=${lat},${lng}&hl=zh-TW&z=17&output=embed`;
+        }
+    }
+
+    // 地圖全螢幕
+    function toggleMapFullscreen() {
+        const mapBox = document.getElementById('mapBox');
+        mapBox.classList.toggle('fullscreen-map');
+    }
+
+    // 觸發視窗事件
+    function triggerEvent(player, pos) {
+        const space = boardSpaces[pos];
+        const cardGraphic = document.getElementById('cardGraphic');
+        const answerBox = document.getElementById('answerBox');
+        const showBtn = document.getElementById('showAnswerBtn');
+        
+        document.getElementById('modalTitle').innerText = `${player.name} 抵達格位`;
+        answerBox.style.display = 'none';
+        showBtn.style.display = 'inline-block';
+
+        if (space.type === 'chance') {
+            const card = chanceCards[Math.floor(Math.random() * chanceCards.length)];
+            cardGraphic.innerText = `❓ 機 會 牌 ❓\n${card.title}`;
+            cardGraphic.style.backgroundColor = 'var(--chance)';
+            cardGraphic.style.color = '#000';
+            document.getElementById('modalQuestion').innerText = card.q;
+            document.getElementById('modalAnswer').innerText = card.a;
+        } else if (space.type === 'fate') {
+            const card = fateCards[Math.floor(Math.random() * fateCards.length)];
+            cardGraphic.innerText = `🔮 命 運 牌 🔮\n${card.title}`;
+            cardGraphic.style.backgroundColor = 'var(--fate)';
+            cardGraphic.style.color = '#fff';
+            document.getElementById('modalQuestion').innerText = card.q;
+            document.getElementById('modalAnswer').innerText = card.a;
+        } else {
+            cardGraphic.innerText = `📍 走讀景點：${space.name}`;
+            cardGraphic.style.backgroundColor = 'var(--spot)';
+            cardGraphic.style.color = '#000';
+            
+            if (pos === 0) {
+                document.getElementById('modalQuestion').innerText = '走讀起點 (Meander Taipei)：請設定大家今天的學習北極星與身心估點！';
+                document.getElementById('modalAnswer').innerText = '設定不可觸犯的底線與期待。';
+            } else if (pos === 15) {
+                document.getElementById('modalQuestion').innerText = '抵達終點 (CollaPlay)！現在讓我們進行最後的「復盤」，回顧今天的收穫。';
+                document.getElementById('modalAnswer').innerText = '先望海再造船，共創理想的生活！';
+            } else {
+                const spotQuestions = {
+                    '西門紅樓': { q: '這棟古蹟是由八角樓與十字樓組成，在建築設計上蘊含什麼東、西方的文化祈福意涵？', a: '八卦與十字架在東西方分別代表祈福與驅邪，是新舊與多元文化融合的象徵。' },
+                    '西門電影街': { q: '全盛時期武昌街有十幾家影城。這種高度密集的「電影一條街」反映了台北什麼時代的發展？', a: '1960年代隨中華商場落成，此地注入大量娛樂資本，成為全國最大的育樂活動中心。' },
+                    '美國街塗鴉': { q: '昆明街巷弄內滿牆的潮牌、塗鴉藝術。這種非官方、由下而上的街頭文化重新定義了什麼空間？', a: '西門町就像青色組織般的「一時自律地帶」，是年輕人展現自我、包容邊緣文化的主場。' },
+                    '台北天后宮': { q: '這棟媽祖廟高懸在成都路商圈縫隙中，且罕見地合祀了日本真言宗的「弘法大師」。這背後有何溫情？', a: '戰後信徒接入舊址時，細心保留了日僧留下來的大師像，體現了宗教與跨文化的緻密調和。' },
+                    '6號彩虹路面': { q: '西門站6號出口著名的「6號彩虹」地景。除了吸引觀光客，它代表了這座城市對LGBTQ+社群的什麼宣言？', a: '2019年同婚合法化的實體宣言，西門町的開放性更是象徵著打破性別邊界的多元包容。' },
+                    '萬年商業大樓': { q: '落成於1973年的老商場，地下室藏有連續榮獲米其林必比登的「老山東牛肉麵」。這地方如何兼顧歷史與潮流？', a: '它是台北青少年的潮流聖地，同時也動態保留了外省移民的鄉愁記憶在現代消費空間中。' },
+                    '剝皮寮歷史街區': { q: '康定路173巷這條保存完好的老街。你可以觀察到「手前為步道、後方為店舗」的雨遮結構，這在日治時期叫作什麼？', a: '清代稱作「亭仔腳」，日治至現代改稱「騎樓」，是為了讓行人安全、防雨行走而由店鋪主動退縮空間的設計巧思。' }
+                };
+                let sq = spotQuestions[space.name] || { q: '歡迎來到此走讀點，請分享小組對這裡的觀察！', a: '用心體會，化枝葉為林相。' };
+                document.getElementById('modalQuestion').innerText = sq.q;
+                document.getElementById('modalAnswer').innerText = sq.a;
+            }
+        }
+
+        document.getElementById('eventModal').style.display = 'flex';
+    }
+
+    function showAnswer() { document.getElementById('answerBox').style.display = 'block'; }
+
+    function awardStone() {
+        let lastPlayerIdx = currentPlayerIndex - 1;
+        if (lastPlayerIdx < 0) lastPlayerIdx = players.length - 1;
+        players[lastPlayerIdx].stones += 1;
+        updateUI();
+        closeModal();
+    }
+
+    function closeModal() {
+        document.getElementById('eventModal').style.display = 'none';
+        document.getElementById('deck-chance').classList.remove('highlight');
+        document.getElementById('deck-fate').classList.remove('highlight');
+    }
+
+    // 更新 UI 狀態
+    function updateUI() {
+        const tbody = document.getElementById('playerList');
+        tbody.innerHTML = '';
+        
+        for (let i = 0; i < boardSpaces.length; i++) {
+            let tokenContainer = document.getElementById(`tokens-${i}`);
+            let spaceDiv = document.getElementById(`space-${i}`);
+            if(tokenContainer) tokenContainer.innerHTML = '';
+            if(spaceDiv) spaceDiv.classList.remove('active');
+        }
+
+        players.forEach(p => {
+            tbody.innerHTML += `
+                <tr>
+                    <td><span style="display:inline-block; width:10px; height:10px; background:${p.color}; border-radius:50%;"></span> ${p.name}</td>
+                    <td>${p.energy}</td>
+                    <td><span style="color:#e67e22;font-weight:bold;">${p.stones}</span></td>
+                    <td>${boardSpaces[p.position].name}</td>
+                </tr>
+            `;
+
+            const token = document.createElement('div');
+            token.className = 'player-token';
+            token.style.backgroundColor = p.color;
+            token.innerText = p.name.charAt(0);
+            token.title = p.name;
+            let tokenContainer = document.getElementById(`tokens-${p.position}`);
+            if(tokenContainer) tokenContainer.appendChild(token);
+        });
+
+        if(players.length > 0) {
+            let activeSpace = document.getElementById(`space-${players[currentPlayerIndex].position}`);
+            if(activeSpace) activeSpace.classList.add('active');
+        }
+    }
+
+    function updateTurnIndicator() {
+        document.getElementById('turnIndicator').innerText = `👉 現在輪到：${players[currentPlayerIndex].name}`;
+        document.getElementById('turnIndicator').style.color = players[currentPlayerIndex].color;
+    }
+
+</script>
+
+</body>
+</html>
