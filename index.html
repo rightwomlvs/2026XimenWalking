@@ -3,72 +3,176 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>西門町大富翁 - 敏捷走讀版 V4</title>
+    <title>2026貍想教育節｜西門町走讀大富翁</title>
     <style>
         :root {
-            --primary: #008080; /* 青色組織色調 */
-            --secondary: #20b2aa;
-            --chance: #ffb6c1;
-            --fate: #9370db;
-            --spot: #87ceeb;
-            --board-bg: #e6f0eb;
-            --space-bg: #fff;
+            /* 用戶指定色票 */
+            --u-orange: #f29844;
+            --u-white: #ffffff;
+            --u-dark-gray: #585858;
+            --u-light-gray: #d8d8d9;
+
+            /* 任務卡風格霓虹色 */
+            --neon-green: #3DFF3D; /* 控制板、起終點 */
+            --neon-blue: #00E5FF;  /* 景點格霓虹藍 */
+            --neon-pink: #FF3DAE;  /* 標題彩色霓虹用 */
+            --neon-purple: #B45BFF; /* 起終點關卡用，與左側面板綠色區隔 */
+            
+            /* 背景設定 */
+            --bg-color: #0A0A0E; /* 極深背景，襯托霓虹 */
+            --panel-bg: #15151A; /* 面板底色 */
+            --card-bg: #1A1A24;  /* 卡片底色 */
         }
+        
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #f4f7f6;
+            font-family: 'Segoe UI', 'Microsoft JhengHei', 'PingFang TC', sans-serif;
+            background-color: var(--bg-color);
             margin: 0;
             padding: 20px;
-            color: #333;
+            color: var(--u-white);
+            font-size: 16px;
         }
-        h1 { text-align: center; color: var(--primary); margin-top: 0; }
+
+        h1 {
+            text-align: center;
+            color: var(--neon-blue);
+            text-shadow: 0 0 10px rgba(0, 229, 255, 0.7);
+            margin-top: 0;
+            margin-bottom: 25px;
+            font-size: 2.2em;
+            letter-spacing: 2px;
+        }
+
+        @keyframes neon-rainbow-flow {
+            0%   { background-position: 0% 50%; }
+            100% { background-position: 300% 50%; }
+        }
         
         .main-layout {
             display: flex;
             flex-wrap: wrap;
-            gap: 20px;
-            max-width: 1400px;
+            gap: 25px;
+            max-width: 1450px;
             margin: 0 auto;
         }
 
-        /* 左側控制面板與地圖 */
+        /* ---------------- 左側控制面板 (霓虹綠) ---------------- */
         .sidebar {
             flex: 1;
-            min-width: 350px;
+            min-width: 360px;
             display: flex;
             flex-direction: column;
             gap: 20px;
         }
+
         .panel-box {
-            background: white;
+            background: var(--panel-bg);
             padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            border-radius: 12px;
+            border: 2px solid var(--neon-green);
+            box-shadow: 0 0 15px rgba(61, 255, 61, 0.3), inset 0 0 10px rgba(61, 255, 61, 0.1);
+        }
+
+        .panel-title {
+            color: var(--neon-green);
+            margin-top: 0;
+            font-size: 1.4em;
+            text-shadow: 0 0 8px rgba(61, 255, 61, 0.6);
+            border-bottom: 1px solid rgba(61, 255, 61, 0.3);
+            padding-bottom: 10px;
+            margin-bottom: 15px;
+        }
+
+        .input-group { 
+            display: flex; 
+            gap: 10px; 
+            margin-bottom: 15px; 
+            align-items: center; 
         }
         
-        /* 地圖區塊 */
-        .map-box {
-            background: white;
-            padding: 15px;
-            border-radius: 10px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-            position: relative;
-            flex-grow: 1;
-            min-height: 350px;
-            display: flex;
-            flex-direction: column;
+        .input-group input {
+            padding: 10px;
+            border: 1px solid var(--neon-green);
+            border-radius: 6px;
+            flex: 1; 
+            min-width: 0;
+            background-color: #000; 
+            color: #fff;
+            font-size: 1em;
+            box-shadow: inset 0 0 5px rgba(61, 255, 61, 0.2);
+        }
+        .input-group input::placeholder { color: rgba(61, 255, 61, 0.4); }
+
+        .btn-green {
+            padding: 10px 15px;
+            background-color: transparent; 
+            color: var(--neon-green);
+            border: 2px solid var(--neon-green);
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 1em;
+            white-space: nowrap;
+            box-shadow: 0 0 8px rgba(61, 255, 61, 0.4);
+            transition: all 0.3s ease;
+        }
+        .btn-green:hover:not(:disabled) {
+            background-color: var(--neon-green);
+            color: #000;
+            box-shadow: 0 0 20px var(--neon-green);
+        }
+        .btn-green:disabled {
+            border-color: var(--u-dark-gray);
+            color: var(--u-dark-gray);
+            box-shadow: none;
+            cursor: not-allowed;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 1em;
+            border-radius: 6px;
+            overflow: hidden;
+            border: 1px solid var(--neon-green);
+        }
+        th, td {
+            border-bottom: 1px solid rgba(61, 255, 61, 0.3);
+            padding: 10px;
+            text-align: center;
+        }
+        th {
+            background-color: rgba(61, 255, 61, 0.15);
+            color: var(--neon-green);
+        }
+
+        /* ---------------- 地圖區塊 ---------------- */
+        .map-header {
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            margin-bottom: 15px;
+            border-bottom: 1px solid rgba(61, 255, 61, 0.3);
+            padding-bottom: 10px;
+        }
+        .map-header h3 {
+            color: var(--neon-green);
+            margin: 0;
+            font-size: 1.4em;
+            text-shadow: 0 0 8px rgba(61, 255, 61, 0.6);
+            white-space: nowrap;
         }
         .map-container {
             width: 100%;
-            flex-grow: 1;
-            background: #eee;
-            border-radius: 6px;
+            height: 350px;
+            background: var(--u-dark-gray);
+            border-radius: 8px;
             overflow: hidden;
-            border: 2px solid var(--primary);
+            border: 2px solid var(--neon-green);
+            box-shadow: 0 0 10px rgba(61, 255, 61, 0.3);
         }
         iframe { width: 100%; height: 100%; border: none; }
-        
-        /* 全螢幕地圖樣式 */
+
         .fullscreen-map {
             position: fixed !important;
             top: 0; left: 0;
@@ -77,70 +181,87 @@
             z-index: 9999;
             padding: 0 !important;
             border-radius: 0 !important;
+            background: rgba(0,0,0,0.9);
+            display: flex;
+            flex-direction: column;
         }
         .fullscreen-map .map-container {
+            flex-grow: 1;
+            height: auto;
             border: none;
             border-radius: 0;
         }
 
-        /* 右側大富翁棋盤 */
+        /* ---------------- 右側大富翁棋盤 ---------------- */
         .board-container {
             flex: 2;
-            min-width: 650px;
-            background: var(--board-bg);
-            padding: 10px;
-            border-radius: 10px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            min-width: 700px;
+            background: transparent;
             display: grid;
             grid-template-columns: repeat(5, 1fr);
             grid-template-rows: repeat(5, 1fr);
-            gap: 5px;
+            gap: 12px;
             aspect-ratio: 1 / 1;
         }
 
-        .input-group { display: flex; gap: 10px; margin-bottom: 10px; align-items: center; }
-        input { padding: 8px; border: 1px solid #ccc; border-radius: 4px; flex: 1; min-width: 0; }
-        button {
-            padding: 8px 12px; background-color: var(--primary); color: white;
-            border: none; border-radius: 4px; cursor: pointer; font-weight: bold;
-        }
-        button:hover { background-color: var(--secondary); }
-        button:disabled { background-color: #ccc; cursor: not-allowed; }
-        
-        table { width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 0.9em; }
-        th, td { border: 1px solid #ddd; padding: 8px; text-align: center; }
-        th { background-color: var(--primary); color: white; }
-
-        /* 棋盤格子樣式 */
+        /* 棋盤格子 - 任務卡風格 */
         .space {
-            background: var(--space-bg);
-            border: 2px solid #ccc;
-            border-radius: 5px;
-            padding: 5px;
+            background: var(--card-bg);
+            border: 2px solid #333;
+            border-radius: 8px;
+            padding: 10px;
             display: flex;
             flex-direction: column;
             align-items: center;
-            justify-content: flex-start;
+            justify-content: center;
             text-align: center;
-            font-size: 0.8em;
             position: relative;
+            transition: all 0.3s ease;
         }
-        .space.active { border-color: #ff8c00; background-color: #fff3e0; box-shadow: inset 0 0 10px #ffe4b5; }
-        .space-header {
-            width: 100%; padding: 3px 0; font-weight: bold; border-radius: 3px 3px 0 0;
-            margin-bottom: 5px; font-size: 1.05em; text-align: center;
+        .space.active { 
+            background-color: #2a2a2a; 
+            transform: scale(1.05);
+            z-index: 10;
         }
-        .spot-header { background: var(--spot); color: #000; }
-        .chance-header { background: var(--chance); color: #000; }
-        .fate-header { background: var(--fate); color: #fff; }
-        .start-header { background: #2ecc71; color: #fff; }
+
+        .space-name {
+            font-size: 1.3em;
+            font-weight: bold;
+            line-height: 1.3;
+            color: var(--u-light-gray);
+            z-index: 2;
+        }
+        .space-icon {
+            font-size: 1.2em;
+            margin-bottom: 5px;
+        }
+
+        /* 依據類型發光 */
+        .spot { border-color: var(--neon-blue); box-shadow: inset 0 0 15px rgba(0, 229, 255, 0.1); }
+        .spot .space-name { color: var(--neon-blue); text-shadow: 0 0 5px rgba(0, 229, 255, 0.5); }
+        .spot.active { box-shadow: 0 0 20px var(--neon-blue), inset 0 0 20px rgba(0, 229, 255, 0.3); }
+
+        .chance { border-color: var(--u-orange); box-shadow: inset 0 0 15px rgba(242, 152, 68, 0.1); }
+        .chance .space-name { color: var(--u-orange); text-shadow: 0 0 5px rgba(242, 152, 68, 0.5); }
+        .chance.active { box-shadow: 0 0 20px var(--u-orange), inset 0 0 20px rgba(242, 152, 68, 0.3); }
+
+        .fate { border-color: var(--u-white); box-shadow: inset 0 0 15px rgba(255, 255, 255, 0.1); }
+        .fate .space-name { color: var(--u-white); text-shadow: 0 0 5px rgba(255, 255, 255, 0.5); }
+        .fate.active { box-shadow: 0 0 20px var(--u-white), inset 0 0 20px rgba(255, 255, 255, 0.3); }
+
+        .start-end { border-color: var(--neon-purple); box-shadow: inset 0 0 15px rgba(180, 91, 255, 0.1); }
+        .start-end .space-name { color: var(--neon-purple); text-shadow: 0 0 5px rgba(180, 91, 255, 0.5); }
+        .start-end.active { box-shadow: 0 0 20px var(--neon-purple), inset 0 0 20px rgba(180, 91, 255, 0.3); }
         
         /* 玩家棋子 */
-        .tokens { display: flex; flex-wrap: wrap; gap: 2px; justify-content: center; margin-top: auto; padding-top: 5px; }
+        .tokens { 
+            display: flex; flex-wrap: wrap; gap: 4px; justify-content: center; 
+            position: absolute; bottom: 8px; left: 0; width: 100%;
+        }
         .player-token {
-            width: 22px; height: 22px; color: white; border-radius: 50%;
-            line-height: 22px; font-size: 12px; font-weight: bold; text-align: center;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+            width: 24px; height: 24px; color: #000; border-radius: 50%;
+            line-height: 24px; font-size: 14px; font-weight: bold; text-align: center;
+            box-shadow: 0 0 10px rgba(255,255,255,0.8); 
         }
 
         /* 棋盤座標定位 (口字型 5x5) */
@@ -165,101 +286,132 @@
         .center-deck-area {
             grid-column: 2 / 5;
             grid-row: 2 / 5;
-            background: #fdfaf4;
-            border: 3px dashed var(--primary);
-            border-radius: 8px;
+            background: transparent;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            padding: 10px;
             position: relative;
         }
         .center-title {
-            font-size: 1.6em;
-            font-weight: bold;
-            color: #b22222;
-            margin-bottom: 20px;
+            font-size: 2.2em;
+            font-weight: 800;
+            margin-bottom: 40px;
             letter-spacing: 2px;
-            text-shadow: 1px 1px 2px rgba(0,0,0,0.1);
+            text-align: center;
+            line-height: 1.4;
+            background: linear-gradient(90deg,
+                var(--neon-blue), var(--neon-pink), var(--u-orange),
+                var(--neon-green), var(--neon-blue));
+            background-size: 300% 100%;
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            /* 較小、較少層的光暈，避免文字邊緣模糊 */
+            text-shadow: 0 0 2px rgba(255,255,255,0.5), 0 0 6px rgba(0,229,255,0.35);
+            animation: neon-rainbow-flow 9s linear infinite;
         }
         .card-decks {
             display: flex;
-            gap: 30px;
+            gap: 40px;
             width: 100%;
             justify-content: center;
         }
         
         .deck {
-            width: 100px;
-            height: 65px;
-            border-radius: 6px;
-            border: 2px solid #333;
-            background-color: #fff;
+            width: 130px;
+            height: 85px;
+            border-radius: 8px;
+            background-color: var(--card-bg);
             display: flex;
             align-items: center;
             justify-content: center;
             font-weight: bold;
-            font-size: 1.3em;
+            font-size: 1.5em;
             position: relative;
+            transition: all 0.3s;
         }
         .chance-deck {
-            color: #d81b60;
-            box-shadow: -5px 5px 0 var(--chance), -5px 5px 0 2px #333;
-            transform: rotate(-5deg);
+            color: var(--u-orange);
+            border: 3px solid var(--u-orange);
+            box-shadow: 0 0 15px rgba(242, 152, 68, 0.4);
+            transform: rotate(-6deg);
         }
         .fate-deck {
-            color: #4b0082;
-            box-shadow: 5px 5px 0 var(--fate), 5px 5px 0 2px #333;
-            transform: rotate(5deg);
+            color: var(--u-white);
+            border: 3px solid var(--u-white);
+            box-shadow: 0 0 15px rgba(255, 255, 255, 0.4);
+            transform: rotate(6deg);
         }
         
         .deck.highlight {
-            animation: pulse 0.8s infinite alternate;
-            border: 3px solid #ff8c00;
+            animation: pulse-card 0.6s infinite alternate;
             z-index: 10;
         }
-        @keyframes pulse {
-            from { transform: scale(1) rotate(calc(var(--r, 0)*1deg)); box-shadow: 0 0 5px #ff8c00; }
-            to { transform: scale(1.1) rotate(calc(var(--r, 0)*1deg)); box-shadow: 0 0 15px #ff8c00; }
+        @keyframes pulse-card {
+            from { transform: scale(1) rotate(calc(var(--r, 0)*1deg)); filter: brightness(1); }
+            to { transform: scale(1.15) rotate(calc(var(--r, 0)*1deg)); filter: brightness(1.5); box-shadow: 0 0 30px currentColor; }
         }
 
-        /* 彈出視窗 (Modal) */
+        /* 彈出視窗 */
         .modal {
             display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.6); justify-content: center; align-items: center; z-index: 10000;
+            background: rgba(0,0,0,0.85); justify-content: center; align-items: center; z-index: 10000;
         }
         .modal-content {
-            background: white; padding: 25px; border-radius: 10px; max-width: 500px; width: 90%;
-            text-align: center; box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            background: var(--panel-bg); padding: 35px; border-radius: 12px; max-width: 600px; width: 90%;
+            text-align: center; border: 2px solid var(--neon-blue); box-shadow: 0 0 30px rgba(0, 229, 255, 0.3);
         }
-        .modal-content h2 { color: var(--primary); margin-top: 0; }
+        .modal-content h2 { color: var(--u-white); margin-top: 0; font-size: 1.8em; letter-spacing: 2px;}
+        
         .card-graphic {
             padding: 20px;
-            margin: 15px 0;
+            margin: 20px 0;
             border-radius: 8px;
+            font-size: 1.4em;
             font-weight: bold;
-            box-shadow: inset 0 0 10px rgba(0,0,0,0.1);
+            color: var(--u-white);
+            background: #222;
         }
+        
+        #modalQuestion { font-size: 1.25em; line-height: 1.6; margin: 20px 0; color: var(--u-light-gray); }
+        
         .answer-box {
-            display: none; margin-top: 15px; padding: 15px; background: #f0f8ff;
-            border-left: 5px solid var(--primary); text-align: left;
+            display: none; margin-top: 20px; padding: 20px; background: rgba(0,0,0,0.5);
+            border-left: 6px solid var(--neon-blue); text-align: left;
+            font-size: 1.15em; line-height: 1.6; color: var(--u-white);
         }
-        .controls { display: flex; gap: 10px; justify-content: center; margin-top: 20px; }
+        .controls { display: flex; gap: 15px; justify-content: center; margin-top: 30px; }
+        
+        .modal button {
+            padding: 12px 20px; background-color: transparent; border-radius: 6px;
+            cursor: pointer; font-weight: bold; font-size: 1.1em; transition: all 0.3s;
+        }
+        .btn-outline-blue { color: var(--neon-blue); border: 2px solid var(--neon-blue); }
+        .btn-outline-blue:hover { background: var(--neon-blue); color: #000; box-shadow: 0 0 15px var(--neon-blue); }
+        
+        .btn-outline-orange { color: var(--u-orange); border: 2px solid var(--u-orange); }
+        .btn-outline-orange:hover { background: var(--u-orange); color: #000; box-shadow: 0 0 15px var(--u-orange); }
+        
+        .btn-outline-gray { color: var(--u-light-gray); border: 2px solid var(--u-dark-gray); }
+        .btn-outline-gray:hover { background: var(--u-dark-gray); color: #fff; }
+
+        .btn-outline-purple { color: var(--neon-purple); border: 2px solid var(--neon-purple); }
+        .btn-outline-purple:hover { background: var(--neon-purple); color: #000; box-shadow: 0 0 15px var(--neon-purple); }
     </style>
 </head>
 <body>
 
-<h1>西門町敏捷走讀大富翁</h1>
+<h1>2026貍想教育節｜西門町走讀大富翁</h1>
 
 <div class="main-layout">
     <div class="sidebar">
         <div class="panel-box">
-            <h3>1. 玩家報到 (身心估點)</h3>
+            <h3 class="panel-title">1. 玩家報到 (身心估點)</h3>
             <div class="input-group">
                 <input type="text" id="playerName" placeholder="姓名 / 暱稱">
-                <input type="number" id="playerEnergy" placeholder="估點 (1-10)" min="1" max="10" style="max-width: 90px;">
-                <button onclick="addPlayer()" style="white-space: nowrap; flex-shrink: 0;">加 入</button>
+                <input type="number" id="playerEnergy" placeholder="估點(1-10)" min="1" max="10" style="max-width: 90px;">
+                <button class="btn-green" onclick="addPlayer()">加 入</button>
             </div>
             
             <table id="playerTable">
@@ -274,17 +426,15 @@
                 <tbody id="playerList"></tbody>
             </table>
 
-            <hr style="margin: 15px 0; border: none; border-top: 1px solid #ddd;">
-
-            <h3>2. 進行走讀</h3>
-            <p id="turnIndicator" style="font-weight: bold; color: var(--primary); font-size: 1.05em; margin-bottom: 10px;">請先加入玩家！</p>
-            <button id="rollBtn" onclick="rollDice()" style="width: 100%; padding: 12px; font-size: 1.1em;" disabled>🎲 擲骰子前進 (1-6步)</button>
+            <h3 class="panel-title" style="margin-top: 30px;">2. 進行走讀</h3>
+            <p id="turnIndicator" style="font-weight: bold; color: #fff; font-size: 1.15em; margin-bottom: 15px;">請先加入玩家！</p>
+            <button id="rollBtn" class="btn-green" onclick="rollDice()" style="width: 100%; padding: 15px; font-size: 1.2em;" disabled>🎲 擲骰子前進</button>
         </div>
 
-        <div class="map-box" id="mapBox">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-                <h3 style="margin: 0;">📍 實景地圖導覽</h3>
-                <button id="fullscreenBtn" onclick="toggleMapFullscreen()" style="background-color: #34495e; color: white; padding: 4px 8px; font-size: 0.85em; border: none; border-radius: 4px; cursor: pointer;">🔍 全螢幕切換</button>
+        <div class="panel-box" id="mapBox" style="padding: 15px; display: flex; flex-direction: column; flex-grow: 1;">
+            <div class="map-header">
+                <h3>📍 實景地圖導覽</h3>
+                <button id="fullscreenBtn" class="btn-green" onclick="toggleMapFullscreen()" style="padding: 6px 12px; font-size: 0.9em;">🔍 全螢幕</button>
             </div>
             <div class="map-container">
                 <iframe id="gmap" src="https://maps.google.com/maps?q=25.0435,121.5015&hl=zh-TW&z=16&output=embed"></iframe>
@@ -294,10 +444,10 @@
 
     <div class="board-container" id="gameBoard">
         <div class="center-deck-area">
-            <div class="center-title">西門町大富翁</div>
+            <div class="center-title">2026貍想教育節<br>西門町走讀大富翁</div>
             <div class="card-decks">
-                <div class="deck chance-deck" id="deck-chance" style="--r: -5;">機 會</div>
-                <div class="deck fate-deck" id="deck-fate" style="--r: 5;">命 運</div>
+                <div class="deck chance-deck" id="deck-chance" style="--r: -6;">機 會</div>
+                <div class="deck fate-deck" id="deck-fate" style="--r: 6;">命 運</div>
             </div>
         </div>
         </div>
@@ -307,40 +457,40 @@
     <div class="modal-content">
         <h2 id="modalTitle">標題</h2>
         <div id="cardGraphic" class="card-graphic">卡片類型</div>
-        <p id="modalQuestion" style="font-size: 1.1em; line-height: 1.5; margin: 15px 0;"></p>
+        <p id="modalQuestion"></p>
         
         <div id="answerBox" class="answer-box">
-            <strong style="color: var(--primary);">解答 / 引導提示：</strong>
-            <p id="modalAnswer" style="margin-bottom: 0;"></p>
+            <strong id="answerTitle" style="color: var(--neon-blue); font-size: 1.1em;">💡 解答 / 引導提示：</strong>
+            <p id="modalAnswer" style="margin-top: 10px; margin-bottom: 0;"></p>
         </div>
 
         <div class="controls">
-            <button id="showAnswerBtn" onclick="showAnswer()">查看提示 / 解答</button>
-            <button id="rewardBtn" onclick="awardStone()">🎁 討論分享完畢！獲得 1 方石</button>
-            <button onclick="closeModal()" style="background: #95a5a6; color: white; border: none; padding: 8px 12px; border-radius: 4px; cursor: pointer;">關閉</button>
+            <button id="showAnswerBtn" class="btn-outline-blue" onclick="showAnswer()">查看提示 / 解答</button>
+            <button id="rewardBtn" class="btn-outline-orange" onclick="awardStone()">🎁 分享完畢！得 1 方石</button>
+            <button onclick="closeModal()" class="btn-outline-gray">關閉</button>
         </div>
     </div>
 </div>
 
 <script>
-    // 隱藏具體內容的關卡座標
+    // 關卡座標與類型設定
     const boardSpaces = [
-        { type: 'start', name: 'Meander Taipei', lat: 25.0435, lng: 121.5015 },
-        { type: 'chance', name: '機 會', lat: null, lng: null },
-        { type: 'spot', name: '西門紅樓', lat: 25.0421, lng: 121.5070 },
-        { type: 'fate', name: '命 運', lat: null, lng: null },
-        { type: 'spot', name: '西門電影街', lat: 25.0443, lng: 121.5034 },
-        { type: 'chance', name: '機 會', lat: null, lng: null },
-        { type: 'spot', name: '美國街塗鴉', lat: 25.0440, lng: 121.5045 },
-        { type: 'fate', name: '命 運', lat: null, lng: null },
-        { type: 'spot', name: '萬年商業大樓', lat: 25.0435, lng: 121.5060 },
-        { type: 'chance', name: '機 會', lat: null, lng: null },
-        { type: 'spot', name: '台北天后宮', lat: 25.0428, lng: 121.5063 },
-        { type: 'fate', name: '命 運', lat: null, lng: null },
-        { type: 'spot', name: '6號彩虹路面', lat: 25.0428, lng: 121.5080 },
-        { type: 'chance', name: '機 會', lat: null, lng: null },
-        { type: 'spot', name: '剝皮寮歷史街區', lat: 25.0366, lng: 121.5019 },
-        { type: 'end', name: 'CollaPlay (終點)', lat: 25.0430, lng: 121.5060 }
+        { type: 'start-end', name: 'Meander<br>Taipei', lat: 25.0435, lng: 121.5015, icon: '🏠' },
+        { type: 'chance', name: '機 會', lat: null, lng: null, icon: '❓' },
+        { type: 'spot', name: '西門紅樓', lat: 25.0421, lng: 121.5070, icon: '📍' },
+        { type: 'fate', name: '命 運', lat: null, lng: null, icon: '🔮' },
+        { type: 'spot', name: '西門電影街', lat: 25.0443, lng: 121.5034, icon: '📍' },
+        { type: 'chance', name: '機 會', lat: null, lng: null, icon: '❓' },
+        { type: 'spot', name: '美國街塗鴉', lat: 25.0440, lng: 121.5045, icon: '📍' },
+        { type: 'fate', name: '命 運', lat: null, lng: null, icon: '🔮' },
+        { type: 'spot', name: '萬年商業<br>大樓', lat: 25.0435, lng: 121.5060, icon: '📍' },
+        { type: 'chance', name: '機 會', lat: null, lng: null, icon: '❓' },
+        { type: 'spot', name: '台北天后宮', lat: 25.0428, lng: 121.5063, icon: '📍' },
+        { type: 'fate', name: '命 運', lat: null, lng: null, icon: '🔮' },
+        { type: 'spot', name: '6號彩虹<br>路面', lat: 25.0428, lng: 121.5080, icon: '📍' },
+        { type: 'chance', name: '機 會', lat: null, lng: null, icon: '❓' },
+        { type: 'spot', name: '剝皮寮<br>歷史街區', lat: 25.0366, lng: 121.5019, icon: '📍' },
+        { type: 'start-end', name: 'CollaPlay<br>(終點)', lat: 25.0430, lng: 121.5060, icon: '🏁' }
     ];
 
     // 機會卡牌池 (貍想學院敏捷與核心概念)
@@ -361,9 +511,9 @@
 
     let players = [];
     let currentPlayerIndex = 0;
-    const colors = ['#e74c3c', '#3498db', '#9b59b6', '#f1c40f', '#e67e22', '#2ecc71'];
+    // 使用高飽和度顏色做為棋子
+    const colors = ['#f29844', '#00E5FF', '#3DFF3D', '#FF007F', '#B45BFF', '#FFD700'];
 
-    // 確保 DOM 完全載入後才初始化棋盤
     window.addEventListener('DOMContentLoaded', initBoard);
 
     function initBoard() {
@@ -375,15 +525,10 @@
             div.className = `space ${space.type}`;
             div.id = `space-${index}`;
             
-            let headerClass = 'spot-header';
-            let icon = '📍';
-            if (index === 0 || index === 15) headerClass = 'start-header';
-            else if (space.type === 'chance') { headerClass = 'chance-header'; icon = '❓'; }
-            else if (space.type === 'fate') { headerClass = 'fate-header'; icon = '🔮'; }
-            
+            // 簡化格子內容，極大化字體
             div.innerHTML = `
-                <div class="space-header ${headerClass}">${icon} ${index}</div>
-                <div style="font-weight:bold; margin-bottom:5px;">${space.name}</div>
+                <div class="space-icon">${space.icon}</div>
+                <div class="space-name">${space.name}</div>
                 <div class="tokens" id="tokens-${index}"></div>
             `;
             boardEl.appendChild(div);
@@ -415,13 +560,12 @@
         }
     }
 
-    // 擲骰子前進 1-6 步
+    // 擲骰子
     function rollDice() {
         if (players.length === 0) return;
         const rollBtn = document.getElementById('rollBtn');
         rollBtn.disabled = true;
 
-        // 清除牌堆高亮
         document.getElementById('deck-chance').classList.remove('highlight');
         document.getElementById('deck-fate').classList.remove('highlight');
 
@@ -449,7 +593,6 @@
                     updateMap(currentSpace.lat, currentSpace.lng);
                 }
                 
-                // 高亮對應卡牌堆
                 if (currentSpace.type === 'chance') {
                     document.getElementById('deck-chance').classList.add('highlight');
                 } else if (currentSpace.type === 'fate') {
@@ -475,10 +618,14 @@
         }
     }
 
-    // 地圖全螢幕
     function toggleMapFullscreen() {
-        const mapBox = document.getElementById('mapBox');
-        mapBox.classList.toggle('fullscreen-map');
+        document.getElementById('mapBox').classList.toggle('fullscreen-map');
+        const btn = document.getElementById('fullscreenBtn');
+        if (document.getElementById('mapBox').classList.contains('fullscreen-map')) {
+            btn.innerText = '❌ 關閉全螢幕';
+        } else {
+            btn.innerText = '🔍 全螢幕切換';
+        }
     }
 
     // 觸發視窗事件
@@ -487,29 +634,60 @@
         const cardGraphic = document.getElementById('cardGraphic');
         const answerBox = document.getElementById('answerBox');
         const showBtn = document.getElementById('showAnswerBtn');
+        const answerTitle = document.getElementById('answerTitle');
         
-        document.getElementById('modalTitle').innerText = `${player.name} 抵達格位`;
+        document.getElementById('modalTitle').innerText = `${player.name} 抵達`;
         answerBox.style.display = 'none';
         showBtn.style.display = 'inline-block';
+        showBtn.className = '';
 
+        // 根據類型渲染 Modal 顏色與內容
         if (space.type === 'chance') {
             const card = chanceCards[Math.floor(Math.random() * chanceCards.length)];
-            cardGraphic.innerText = `❓ 機 會 牌 ❓\n${card.title}`;
-            cardGraphic.style.backgroundColor = 'var(--chance)';
-            cardGraphic.style.color = '#000';
+            cardGraphic.innerText = `❓ 機 會 ❓\n\n${card.title}`;
+            cardGraphic.style.border = '2px solid var(--u-orange)';
+            cardGraphic.style.boxShadow = 'inset 0 0 15px rgba(242, 152, 68, 0.3), 0 0 10px rgba(242, 152, 68, 0.5)';
+            cardGraphic.style.color = 'var(--u-orange)';
             document.getElementById('modalQuestion').innerText = card.q;
             document.getElementById('modalAnswer').innerText = card.a;
+            
+            showBtn.classList.add('btn-outline-orange');
+            answerBox.style.borderLeftColor = 'var(--u-orange)';
+            answerTitle.style.color = 'var(--u-orange)';
+            
         } else if (space.type === 'fate') {
             const card = fateCards[Math.floor(Math.random() * fateCards.length)];
-            cardGraphic.innerText = `🔮 命 運 牌 🔮\n${card.title}`;
-            cardGraphic.style.backgroundColor = 'var(--fate)';
-            cardGraphic.style.color = '#fff';
+            cardGraphic.innerText = `🔮 命 運 🔮\n\n${card.title}`;
+            cardGraphic.style.border = '2px solid var(--u-white)';
+            cardGraphic.style.boxShadow = 'inset 0 0 15px rgba(255, 255, 255, 0.3), 0 0 10px rgba(255, 255, 255, 0.5)';
+            cardGraphic.style.color = 'var(--u-white)';
             document.getElementById('modalQuestion').innerText = card.q;
             document.getElementById('modalAnswer').innerText = card.a;
+
+            showBtn.classList.add('btn-outline-gray'); // using gray outline as white might be too bright on hover
+            answerBox.style.borderLeftColor = 'var(--u-white)';
+            answerTitle.style.color = 'var(--u-white)';
+            
         } else {
-            cardGraphic.innerText = `📍 走讀景點：${space.name}`;
-            cardGraphic.style.backgroundColor = 'var(--spot)';
-            cardGraphic.style.color = '#000';
+            cardGraphic.innerText = `📍 走讀景點：\n\n${space.name.replace('<br>', '')}`;
+            
+            if (space.type === 'start-end') {
+                cardGraphic.style.border = '2px solid var(--neon-purple)';
+                cardGraphic.style.boxShadow = 'inset 0 0 15px rgba(180, 91, 255, 0.3), 0 0 10px rgba(180, 91, 255, 0.5)';
+                cardGraphic.style.color = 'var(--neon-purple)';
+                
+                showBtn.classList.add('btn-outline-purple');
+                answerBox.style.borderLeftColor = 'var(--neon-purple)';
+                answerTitle.style.color = 'var(--neon-purple)';
+            } else {
+                cardGraphic.style.border = '2px solid var(--neon-blue)';
+                cardGraphic.style.boxShadow = 'inset 0 0 15px rgba(0, 229, 255, 0.3), 0 0 10px rgba(0, 229, 255, 0.5)';
+                cardGraphic.style.color = 'var(--neon-blue)';
+
+                showBtn.classList.add('btn-outline-blue');
+                answerBox.style.borderLeftColor = 'var(--neon-blue)';
+                answerTitle.style.color = 'var(--neon-blue)';
+            }
             
             if (pos === 0) {
                 document.getElementById('modalQuestion').innerText = '走讀起點 (Meander Taipei)：請設定大家今天的學習北極星與身心估點！';
@@ -523,9 +701,9 @@
                     '西門電影街': { q: '全盛時期武昌街有十幾家影城。這種高度密集的「電影一條街」反映了台北什麼時代的發展？', a: '1960年代隨中華商場落成，此地注入大量娛樂資本，成為全國最大的育樂活動中心。' },
                     '美國街塗鴉': { q: '昆明街巷弄內滿牆的潮牌、塗鴉藝術。這種非官方、由下而上的街頭文化重新定義了什麼空間？', a: '西門町就像青色組織般的「一時自律地帶」，是年輕人展現自我、包容邊緣文化的主場。' },
                     '台北天后宮': { q: '這棟媽祖廟高懸在成都路商圈縫隙中，且罕見地合祀了日本真言宗的「弘法大師」。這背後有何溫情？', a: '戰後信徒接入舊址時，細心保留了日僧留下來的大師像，體現了宗教與跨文化的緻密調和。' },
-                    '6號彩虹路面': { q: '西門站6號出口著名的「6號彩虹」地景。除了吸引觀光客，它代表了這座城市對LGBTQ+社群的什麼宣言？', a: '2019年同婚合法化的實體宣言，西門町的開放性更是象徵著打破性別邊界的多元包容。' },
-                    '萬年商業大樓': { q: '落成於1973年的老商場，地下室藏有連續榮獲米其林必比登的「老山東牛肉麵」。這地方如何兼顧歷史與潮流？', a: '它是台北青少年的潮流聖地，同時也動態保留了外省移民的鄉愁記憶在現代消費空間中。' },
-                    '剝皮寮歷史街區': { q: '康定路173巷這條保存完好的老街。你可以觀察到「手前為步道、後方為店舗」的雨遮結構，這在日治時期叫作什麼？', a: '清代稱作「亭仔腳」，日治至現代改稱「騎樓」，是為了讓行人安全、防雨行走而由店鋪主動退縮空間的設計巧思。' }
+                    '6號彩虹<br>路面': { q: '西門站6號出口著名的「6號彩虹」地景。除了吸引觀光客，它代表了這座城市對LGBTQ+社群的什麼宣言？', a: '2019年同婚合法化的實體宣言，西門町的開放性更是象徵著打破性別邊界的多元包容。' },
+                    '萬年商業<br>大樓': { q: '落成於1973年的老商場，地下室藏有連續榮獲米其林必比登的「老山東牛肉麵」。這地方如何兼顧歷史與潮流？', a: '它是台北青少年的潮流聖地，同時也動態保留了外省移民的鄉愁記憶在現代消費空間中。' },
+                    '剝皮寮<br>歷史街區': { q: '康定路173巷這條保存完好的老街。你可以觀察到「手前為步道、後方為店舗」的雨遮結構，這在日治時期叫作什麼？', a: '清代稱作「亭仔腳」，日治至現代改稱「騎樓」，是為了讓行人安全、防雨行走而由店鋪主動退縮空間的設計巧思。' }
                 };
                 let sq = spotQuestions[space.name] || { q: '歡迎來到此走讀點，請分享小組對這裡的觀察！', a: '用心體會，化枝葉為林相。' };
                 document.getElementById('modalQuestion').innerText = sq.q;
@@ -569,8 +747,8 @@
                 <tr>
                     <td><span style="display:inline-block; width:10px; height:10px; background:${p.color}; border-radius:50%;"></span> ${p.name}</td>
                     <td>${p.energy}</td>
-                    <td><span style="color:#e67e22;font-weight:bold;">${p.stones}</span></td>
-                    <td>${boardSpaces[p.position].name}</td>
+                    <td><span style="color:var(--u-orange);font-weight:bold; font-size:1.2em;">${p.stones}</span></td>
+                    <td>${boardSpaces[p.position].name.replace('<br>','')}</td>
                 </tr>
             `;
 
@@ -591,7 +769,8 @@
 
     function updateTurnIndicator() {
         document.getElementById('turnIndicator').innerText = `👉 現在輪到：${players[currentPlayerIndex].name}`;
-        document.getElementById('turnIndicator').style.color = players[currentPlayerIndex].color;
+        document.getElementById('turnIndicator').style.color = 'var(--neon-green)';
+        document.getElementById('turnIndicator').style.textShadow = `0 0 8px var(--neon-green)`;
     }
 
 </script>
