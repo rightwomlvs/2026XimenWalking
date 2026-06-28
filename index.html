@@ -179,6 +179,36 @@
         }
         iframe { width: 100%; height: 100%; border: none; }
 
+        #historyPlayerSelect {
+            background-color: #000;
+            color: var(--neon-green);
+            border: 1px solid var(--neon-green);
+            border-radius: 6px;
+            padding: 6px 10px;
+            font-size: 0.95em;
+        }
+        .history-entry {
+            background: rgba(255, 255, 255, 0.04);
+            border-left: 4px solid var(--neon-blue);
+            border-radius: 4px;
+            padding: 8px 12px;
+            font-size: 0.95em;
+            line-height: 1.5;
+            color: var(--u-light-gray);
+        }
+        .history-entry .step-num {
+            color: var(--u-dark-gray);
+            font-size: 0.85em;
+            margin-right: 8px;
+        }
+        .history-detail {
+            margin-top: 4px;
+            font-size: 0.85em;
+            color: var(--u-light-gray);
+            opacity: 0.75;
+            line-height: 1.4;
+        }
+
         .fullscreen-map {
             position: fixed !important;
             top: 0; left: 0;
@@ -408,7 +438,6 @@
 </head>
 <body>
 
-
 <div class="main-layout">
     <div class="sidebar">
         <div class="panel-box">
@@ -435,6 +464,16 @@
             <p id="turnIndicator" style="font-weight: bold; color: #fff; font-size: 1.15em; margin-bottom: 15px;">請先加入玩家！</p>
             <div id="diceDisplay" style="font-size: 3.2em; text-align: center; margin-bottom: 10px; min-height: 1.2em; color: var(--neon-green); text-shadow: 0 0 12px rgba(61,255,61,0.6);">🎲</div>
             <button id="rollBtn" class="btn-green" onclick="rollDice()" style="width: 100%; padding: 15px; font-size: 1.2em;" disabled>🎲 擲骰子前進</button>
+        </div>
+
+        <div class="panel-box" id="historyBox">
+            <div class="map-header">
+                <h3>📜 玩家路線紀錄</h3>
+                <select id="historyPlayerSelect" onchange="renderHistory()"></select>
+            </div>
+            <div id="historyLog" style="max-height: 260px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px;">
+                <p style="color: var(--u-light-gray); text-align:center; margin:0;">尚無紀錄，加入玩家並開始走讀吧！</p>
+            </div>
         </div>
 
         <div class="panel-box" id="mapBox" style="padding: 15px; display: flex; flex-direction: column; flex-grow: 1;">
@@ -609,13 +648,15 @@
             energy: parseInt(energy),
             stones: 0,
             position: 0,
-            color: colors[players.length % colors.length]
+            color: colors[players.length % colors.length],
+            history: []
         });
 
         document.getElementById('playerName').value = '';
         document.getElementById('playerEnergy').value = '';
         
         updateUI();
+        refreshHistorySelect();
         if (players.length > 0 && !gameEnded) {
             document.getElementById('rollBtn').disabled = false;
             updateTurnIndicator();
@@ -725,6 +766,12 @@
         showBtn.style.display = 'inline-block';
         showBtn.className = '';
 
+        // 用來記錄這一步走訪內容，結尾會寫入該玩家的路線紀錄
+        let recordIcon = '📍';
+        let recordColor = 'var(--neon-blue)';
+        let recordLabel = '';
+        let recordDetail = '';
+
         // 根據類型渲染 Modal 顏色與內容
         if (space.type === 'chance') {
             const card = drawUnique(chanceCards, usedChanceIndices);
@@ -738,6 +785,11 @@
             showBtn.classList.add('btn-outline-orange');
             answerBox.style.borderLeftColor = 'var(--u-orange)';
             answerTitle.style.color = 'var(--u-orange)';
+
+            recordIcon = '❓';
+            recordColor = 'var(--u-orange)';
+            recordLabel = `機會：${card.title.replace(/[【】]/g, '')}`;
+            recordDetail = card.q;
             
         } else if (space.type === 'fate') {
             const card = drawUnique(fateCards, usedFateIndices);
@@ -751,6 +803,11 @@
             showBtn.classList.add('btn-outline-gray'); // using gray outline as white might be too bright on hover
             answerBox.style.borderLeftColor = 'var(--u-white)';
             answerTitle.style.color = 'var(--u-white)';
+
+            recordIcon = '🔮';
+            recordColor = 'var(--u-white)';
+            recordLabel = `命運：${card.title.replace(/[【】]/g, '')}`;
+            recordDetail = card.q;
             
         } else {
             if (space.type === 'start-end') {
@@ -766,9 +823,17 @@
                 if (pos === 0) {
                     document.getElementById('modalQuestion').innerText = '走讀起點 (Meander Taipei)：請設定大家今天的學習北極星與身心估點！';
                     document.getElementById('modalAnswer').innerText = '設定不可觸犯的底線與期待。';
+                    recordIcon = '🏠';
+                    recordColor = 'var(--neon-purple)';
+                    recordLabel = '出發：Meander Taipei';
+                    recordDetail = '請設定大家今天的學習北極星與身心估點！';
                 } else {
                     document.getElementById('modalQuestion').innerText = '抵達終點 (CollaPlay)！現在讓我們進行最後的「復盤」，回顧今天的收穫。';
                     document.getElementById('modalAnswer').innerText = '先望海再造船，共創理想的生活！';
+                    recordIcon = '🏁';
+                    recordColor = 'var(--neon-purple)';
+                    recordLabel = '抵達終點：CollaPlay';
+                    recordDetail = '進行最後的「復盤」，回顧今天的收穫。';
                 }
             } else {
                 // 隨機抽取一個西門町推薦景點（與機會/命運抽卡邏輯相同）
@@ -786,8 +851,23 @@
                 document.getElementById('modalAnswer').innerText = card.a;
 
                 if (card.lat && card.lng) updateMap(card.lat, card.lng);
+
+                recordIcon = '📍';
+                recordColor = 'var(--neon-blue)';
+                recordLabel = `景點：${card.name}`;
+                recordDetail = card.q;
             }
         }
+
+        // 寫入這位玩家的路線紀錄
+        player.history.push({
+            step: player.history.length + 1,
+            icon: recordIcon,
+            color: recordColor,
+            label: recordLabel,
+            detail: recordDetail
+        });
+        renderHistory();
 
         document.getElementById('eventModal').style.display = 'flex';
     }
@@ -849,6 +929,56 @@
         document.getElementById('turnIndicator').innerText = `👉 現在輪到：${players[currentPlayerIndex].name}`;
         document.getElementById('turnIndicator').style.color = 'var(--neon-green)';
         document.getElementById('turnIndicator').style.textShadow = `0 0 8px var(--neon-green)`;
+    }
+
+    // 更新「玩家路線紀錄」的玩家選單
+    function refreshHistorySelect() {
+        const select = document.getElementById('historyPlayerSelect');
+        const prevValue = select.value;
+        select.innerHTML = '';
+
+        players.forEach(p => {
+            const opt = document.createElement('option');
+            opt.value = p.id;
+            opt.innerText = p.name;
+            select.appendChild(opt);
+        });
+
+        if (prevValue !== '' && players.some(p => String(p.id) === prevValue)) {
+            select.value = prevValue;
+        } else if (players.length > 0) {
+            select.value = players[currentPlayerIndex].id;
+        }
+
+        renderHistory();
+    }
+
+    // 渲染目前選擇玩家的路線紀錄
+    function renderHistory() {
+        const logEl = document.getElementById('historyLog');
+        const select = document.getElementById('historyPlayerSelect');
+
+        if (players.length === 0) {
+            logEl.innerHTML = '<p style="color: var(--u-light-gray); text-align:center; margin:0;">尚無紀錄，加入玩家並開始走讀吧！</p>';
+            return;
+        }
+
+        const selectedId = parseInt(select.value, 10);
+        const player = players.find(p => p.id === selectedId) || players[currentPlayerIndex];
+
+        if (!player || player.history.length === 0) {
+            logEl.innerHTML = `<p style="color: var(--u-light-gray); text-align:center; margin:0;">${player ? player.name : ''} 還沒開始走讀喔！</p>`;
+            return;
+        }
+
+        logEl.innerHTML = player.history.map(entry => `
+            <div class="history-entry" style="border-left-color: ${entry.color};">
+                <div><span class="step-num">第${entry.step}步</span>${entry.icon} ${entry.label}</div>
+                ${entry.detail ? `<div class="history-detail">${entry.detail}</div>` : ''}
+            </div>
+        `).join('');
+
+        logEl.scrollTop = logEl.scrollHeight;
     }
 
 </script>
