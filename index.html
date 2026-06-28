@@ -128,6 +128,12 @@
             cursor: not-allowed;
         }
 
+        @keyframes dice-shake {
+            0%, 100% { transform: rotate(-10deg) scale(1); }
+            50% { transform: rotate(10deg) scale(1.15); }
+        }
+        .dice-rolling { animation: dice-shake 0.12s ease-in-out infinite; }
+
         table {
             width: 100%;
             border-collapse: collapse;
@@ -402,6 +408,7 @@
 </head>
 <body>
 
+
 <div class="main-layout">
     <div class="sidebar">
         <div class="panel-box">
@@ -426,6 +433,7 @@
 
             <h3 class="panel-title" style="margin-top: 30px;">2. 進行走讀</h3>
             <p id="turnIndicator" style="font-weight: bold; color: #fff; font-size: 1.15em; margin-bottom: 15px;">請先加入玩家！</p>
+            <div id="diceDisplay" style="font-size: 3.2em; text-align: center; margin-bottom: 10px; min-height: 1.2em; color: var(--neon-green); text-shadow: 0 0 12px rgba(61,255,61,0.6);">🎲</div>
             <button id="rollBtn" class="btn-green" onclick="rollDice()" style="width: 100%; padding: 15px; font-size: 1.2em;" disabled>🎲 擲骰子前進</button>
         </div>
 
@@ -475,19 +483,19 @@
     const boardSpaces = [
         { type: 'start-end', name: 'Meander<br>Taipei', lat: 25.0435, lng: 121.5015, icon: '🏠' },
         { type: 'chance', name: '機 會', lat: null, lng: null, icon: '❓' },
-        { type: 'spot', name: '西門紅樓', lat: 25.0421, lng: 121.5070, icon: '📍' },
+        { type: 'spot', name: '西門景點', lat: null, lng: null, icon: '📍' },
         { type: 'fate', name: '命 運', lat: null, lng: null, icon: '🔮' },
-        { type: 'spot', name: '西門電影街', lat: 25.0443, lng: 121.5034, icon: '📍' },
+        { type: 'spot', name: '西門景點', lat: null, lng: null, icon: '📍' },
         { type: 'chance', name: '機 會', lat: null, lng: null, icon: '❓' },
-        { type: 'spot', name: '美國街塗鴉', lat: 25.0440, lng: 121.5045, icon: '📍' },
+        { type: 'spot', name: '西門景點', lat: null, lng: null, icon: '📍' },
         { type: 'fate', name: '命 運', lat: null, lng: null, icon: '🔮' },
-        { type: 'spot', name: '萬年商業<br>大樓', lat: 25.0435, lng: 121.5060, icon: '📍' },
+        { type: 'spot', name: '西門景點', lat: null, lng: null, icon: '📍' },
         { type: 'chance', name: '機 會', lat: null, lng: null, icon: '❓' },
-        { type: 'spot', name: '台北天后宮', lat: 25.0428, lng: 121.5063, icon: '📍' },
+        { type: 'spot', name: '西門景點', lat: null, lng: null, icon: '📍' },
         { type: 'fate', name: '命 運', lat: null, lng: null, icon: '🔮' },
-        { type: 'spot', name: '6號彩虹<br>路面', lat: 25.0428, lng: 121.5080, icon: '📍' },
+        { type: 'spot', name: '西門景點', lat: null, lng: null, icon: '📍' },
         { type: 'chance', name: '機 會', lat: null, lng: null, icon: '❓' },
-        { type: 'spot', name: '電影主題<br>公園', lat: 25.0447, lng: 121.5032, icon: '📍' },
+        { type: 'spot', name: '西門景點', lat: null, lng: null, icon: '📍' },
         { type: 'start-end', name: 'CollaPlay<br>(終點)', lat: 25.0430, lng: 121.5060, icon: '🏁' }
     ];
 
@@ -496,7 +504,13 @@
         { title: '【張力會議 Tension】', q: '「張力不是壓力，而是看見需求。」請分享一個近期在專案或生活中遇到的張力（預期與現實的落差），你當時是如何處理的？', a: '試著運用非暴力溝通，將情緒抽離並轉化為具體的機制調整需求。' },
         { title: '【敏捷迭代 Agile】', q: '「短交付，快迭代。」請分享一個你曾經先求有再求好，透過不斷修正而完成的挑戰案例。', a: '青色組織鼓勵在安全範圍內試錯，每一次迅速迭代都是成長的基石。' },
         { title: '【資訊透明化 Transparency】', q: '「透明不是監視，是為了讓理解成為可能。」請分享一個因資訊不對稱或不透明造成的團隊誤會案例。', a: '透明的看板與流程能消除無謂的猜忌，讓夥伴看見彼此的真實負荷。' },
-        { title: '【進化宗旨 Purpose】', q: '請分享你目前個人或工作專案中的「北極星（核心目標）」是什麼？你為自己設定了什麼不容觸犯的底線？', a: '進化宗旨帶領我們在不穩定的環境中隨時對齊目標，不忘初心。' }
+        { title: '【進化宗旨 Purpose】', q: '請分享你目前個人或工作專案中的「北極星（核心目標）」是什麼？你為自己設定了什麼不容觸犯的底線？', a: '進化宗旨帶領我們在不穩定的環境中隨時對齊目標，不忘初心。' },
+        // 以下為輕量行動任務卡（呼應「被看見」主題）
+        { title: '【任務｜找夥伴合照】', q: '找一位夥伴，在你們覺得最能代表「被看見」的地點拍一張合照，比出你們最自豪的姿勢！', a: '想被看見的方式有千百種，重點是你選擇了哪一種來表達自己。' },
+        { title: '【任務｜西門美食通】', q: '大聲說出一種西門町有名的小吃，答得出來就請隊友為你拍手歡呼一次！', a: '美食也是一種被記住的方式，老店與排隊人潮都在訴說「被看見」的故事。' },
+        { title: '【任務｜明星看板巡禮】', q: '找一張電影看板或大型廣告，仰角拍一張照片，感受個人與商業造星尺度的落差。', a: '商業巨星用尺寸佔據目光，而我們的存在感往往藏在更細微的角落裡。' },
+        { title: '【任務｜廣告標語獵人】', q: '找出附近最吸引你目光的一句廣告標語或店家招牌，唸給隊友聽聽看。', a: '商家也在用文字與設計，努力被路過的人「看見」。' },
+        { title: '【任務｜街頭採訪員】', q: '訪問一位現場店家或路人：「你覺得西門町最酷或最特別的地方是哪裡？」', a: '透過別人的視角，你會看見自己原本沒注意到的西門町。' }
     ];
 
     // 命運卡牌池 (身心完整與團隊自律概念)
@@ -504,11 +518,61 @@
         { title: '【身心完整 Wholeness】', q: '你曾在工作或學習團隊中「隱藏真實的自己」嗎？我們應該如何打造一個可以讓人安全展現脆弱的環境？', a: '不再切割專業角色與真實自我，容許情緒流動與自主調節是身心完整的基礎。' },
         { title: '【能量估點 Checking】', q: '一到十分，你現在的身心估點（心力狀態）是幾分？當你能量低落時，你希望團隊如何實質支援你？', a: '隨時覺察自己與夥伴的能量狀態，拒絕盲目追求齊頭式的絕對公平。' },
         { title: '【內在驅動 Autonomy】', q: '在缺乏外部獎勵與鞭策（例如沒有方石、考成或續聘壓力）時，你通常如何維持自發學習的動能？', a: '引導自己從依賴外在指標的他律，走向源自本心召喚的自律。' },
-        { title: '【團隊復盤 Retrospective】', q: '「關於人生或團隊問題，我一律建議復盤。」請回顧近期生活中一個不夠完美的決策，如果能重來一次，你會做出什麼修正？', a: '復盤不是為了究責或打分數，而是將歷程點滴轉換為未來的航行智慧。' }
+        { title: '【團隊復盤 Retrospective】', q: '「關於人生或團隊問題，我一律建議復盤。」請回顧近期生活中一個不夠完美的決策，如果能重來一次，你會做出什麼修正？', a: '復盤不是為了究責或打分數，而是將歷程點滴轉換為未來的航行智慧。' },
+        // 以下為輕量行動任務卡（呼應「被看見」主題）
+        { title: '【任務｜尋找塗鴉簽名】', q: '在附近找一個塗鴉藝術家留下的簽名或代號，拍照記錄下來。', a: '塗鴉客用簽名宣告「我來過這裡」，是街頭文化裡最直接的存在證明。' },
+        { title: '【任務｜廣場上的宣言】', q: '找一個台階或矮台站上去，輕聲或大聲說出一句「我想被看見的樣子」。', a: '被陌生人注視的那一刻，緊張與釋放往往同時發生，這正是青年文化「被看見」的核心張力。' },
+        { title: '【任務｜街頭擺拍王】', q: '模仿一面塗鴉牆或一張電影看板上的姿勢，請夥伴幫你拍下來。', a: '鏡頭前的姿態，是我們向世界展示自己的方式之一。' },
+        { title: '【任務｜古著單品獵人】', q: '找一件你覺得最有個性的穿搭單品（不限是否穿在身上），拍照分享給隊友。', a: '穿著風格也是一種無聲卻強烈的自我宣告。' },
+        { title: '【任務｜即時打卡】', q: '設計一個屬於自己的打卡手勢或口號，拍照或拍片並分享到小組群組。', a: '在數位時代，一個讚、一個分享，都是我們主動爭取「被看見」的方式。' }
+    ];
+
+    // 西門町推薦景點池（停在「景點」格時隨機抽一個，類似機會/命運抽卡）
+    const spotPool = [
+        { name: '西門紅樓', lat: 25.0421, lng: 121.5070, q: '這棟古蹟是由八角樓與十字樓組成，在建築設計上蘊含什麼東、西方的文化祈福意涵？', a: '八卦與十字架在東西方分別代表祈福與驅邪，是新舊與多元文化融合的象徵。' },
+        { name: '西門電影街', lat: 25.0443, lng: 121.5034, q: '全盛時期武昌街有十幾家影城。這種高度密集的「電影一條街」反映了台北什麼時代的發展？', a: '1960年代隨中華商場落成，此地注入大量娛樂資本，成為全國最大的育樂活動中心。' },
+        { name: '美國街塗鴉', lat: 25.0440, lng: 121.5045, q: '昆明街巷弄內滿牆的潮牌、塗鴉藝術。這種非官方、由下而上的街頭文化重新定義了什麼空間？', a: '西門町就像青色組織般的「一時自律地帶」，是年輕人展現自我、包容邊緣文化的主場。' },
+        { name: '萬年商業大樓', lat: 25.0435, lng: 121.5060, q: '落成於1973年的老商場，地下室藏有連續榮獲米其林必比登的「老山東牛肉麵」。這地方如何兼顧歷史與潮流？', a: '它是台北青少年的潮流聖地，同時也動態保留了外省移民的鄉愁記憶在現代消費空間中。' },
+        { name: '台北天后宮', lat: 25.0428, lng: 121.5063, q: '這棟媽祖廟高懸在成都路商圈縫隙中，且罕見地合祀了日本真言宗的「弘法大師」。這背後有何溫情？', a: '戰後信徒接入舊址時，細心保留了日僧留下來的大師像，體現了宗教與跨文化的緻密調和。' },
+        { name: '6號彩虹路面', lat: 25.0428, lng: 121.5080, q: '西門站6號出口著名的「6號彩虹」地景。除了吸引觀光客，它代表了這座城市對LGBTQ+社群的什麼宣言？', a: '2019年同婚合法化的實體宣言，西門町的開放性更是象徵著打破性別邊界的多元包容。' },
+        { name: '電影主題公園', lat: 25.0447, lng: 121.5032, q: '電影主題公園其實不是因為電影院而得名。這裡的前身是日治時期成立的什麼工廠？園內又保留了哪些工業遺址？', a: '前身是1934年成立的「台灣瓦斯株式會社」，公園保留了老磚造廠房、煙囪與煉焦爐等設施，轉型結合塗鴉、滑板、戶外電影放映的青少年文化空間。' },
+        { name: '剝皮寮歷史街區', lat: 25.0366, lng: 121.5019, q: '康定路173巷這條保存完好的老街。你可以觀察到「手前為步道、後方為店舗」的雨遮結構，這在日治時期叫作什麼？', a: '清代稱作「亭仔腳」，日治至現代改稱「騎樓」，是為了讓行人安全、防雨行走而由店鋪主動退縮空間的設計巧思。' },
+        { name: '刺青街', lat: 25.0432, lng: 121.5077, q: '藏身漢中街50巷、僅120公尺長的刺青街，2012年立起新招牌後聲名大噪。早期刺青常被貼上什麼樣的負面標籤，如今又轉化成什麼樣的文化意涵？', a: '早期常與幫派文化掛勾，如今隨著風氣轉變，多數刺青者是為了彰顯個人風格與紀念意義，成為一種被看見的身體展演藝術。' },
+        { name: '西門誠品', lat: 25.0440, lng: 121.5075, q: '誠品在西門町就有好幾家分店，整合書店、文創與美食。它如何在精品書店與年輕潮流商圈之間找到自己的定位？', a: '誠品把閱讀氣息帶進喧鬧的西門町，讓逛街與閱讀可以並存，也吸引許多原本不進書店的青年走進來。' },
+        { name: '獅子林新光商業大樓', lat: 25.0438, lng: 121.5057, q: '獅子林大樓的前身其實不是商場，而是一座日治時期的佛寺。它後來經歷了什麼樣的轉折，才變成今天的模樣？', a: '前身為東本願寺，戰後曾被保安司令部用作偵訊處所，之後才出售改建為獅子林新光商業大樓，與萬年大樓並列西門町早期的流行地標。' },
+        { name: '阿宗麵線', lat: 25.0444, lng: 121.5073, q: '西門町這家排隊名店連座位都沒有，大家都站著吃。是什麼料理讓它成為日本遊客票選「來台必吃」第一名？', a: '柴魚湯頭配上滑順麵線與滷大腸，香菜蒜泥黑醋一加，是西門町最具代表性的小吃之一。' },
+        { name: '老天祿滷味', lat: 25.0445, lng: 121.5037, q: '這家超過五十年歷史的滷味老店，是不少明星訪台時指定購買的伴手禮。它最知名的招牌滷味是什麼？', a: '鴨舌、鴨翅、雞爪等滷味是老天祿的代表作，香氣與滷汁功夫是它屹立半世紀的關鍵。' },
+        { name: '鴨肉扁', lat: 25.0458, lng: 121.5063, q: '鴨肉扁是西門町的老字號台灣小吃，但它賣的其實不是鴨肉，而是哪種肉？', a: '其實主要賣的是鵝肉，因早年鵝肉與鴨肉常被混稱，店名因此延續下來，成為西門町飲食文化的有趣小插曲。' },
+        { name: '成都楊桃冰', lat: 25.0431, lng: 121.5067, q: '這家超過50年的老店，是西門町夏天解渴的人氣選擇。除了招牌楊桃冰，還有哪些古早味水果可以選？', a: '鳳梨、李子等古早味水果蜜餞冰品都是常見選項，陪伴好幾代台北人度過炎熱的夏天。' },
+        { name: '天天利美食坊', lat: 25.0434, lng: 121.5079, q: '這家藏在漢中街巷弄裡的美食坊，靠什麼樣的「邪惡」蓋飯擄獲不少饕客的心？', a: '蛋汁橫流的半熟蛋滷肉飯是店內人氣餐點，平價卻讓人難以抗拒。' },
+        { name: '紅包場文化區', lat: 25.0438, lng: 121.5052, q: '1950年代起，西門町一帶曾仿效上海歌廳形式，發展出獨特的「紅包場」文化。這種表演形式最初是為了服務哪一群觀眾？', a: '最初主要是服務從中國大陸來台、思念故鄉曲調的軍官與軍眷，歌手駐唱、聽眾包紅包點歌，逐漸演變成西門町獨有的懷舊文化場景。' },
+        { name: '西門六號出口廣場', lat: 25.0429, lng: 121.5083, q: '西門站6號出口前的徒步區，是台北第一條專為行人設置的徒步區。每逢週末這裡常會出現哪些自發性的街頭活動？', a: '簽唱會、快閃表演、街頭藝人、社運倡議等活動經常在此聚集，是普通人也能站上「舞台」被看見的公共空間。' }
     ];
 
     let players = [];
     let currentPlayerIndex = 0;
+    let gameEnded = false;
+
+    // 記錄已經抽過的機會/命運/景點，避免重複，抽完一輪才重新洗牌
+    let usedChanceIndices = new Set();
+    let usedFateIndices = new Set();
+    let usedSpotIndices = new Set();
+
+    function drawUnique(pool, usedSet) {
+        if (usedSet.size >= pool.length) {
+            usedSet.clear(); // 該類別都抽過一輪了，重新洗牌
+        }
+        let idx;
+        do {
+            idx = Math.floor(Math.random() * pool.length);
+        } while (usedSet.has(idx));
+        usedSet.add(idx);
+        return pool[idx];
+    }
+
+    function sleep(ms) {
+        return new Promise(resolve => setTimeout(resolve, ms));
+    }
     // 使用高飽和度顏色做為棋子
     const colors = ['#f29844', '#00E5FF', '#3DFF3D', '#FF007F', '#B45BFF', '#FFD700'];
 
@@ -552,60 +616,82 @@
         document.getElementById('playerEnergy').value = '';
         
         updateUI();
-        if (players.length > 0) {
+        if (players.length > 0 && !gameEnded) {
             document.getElementById('rollBtn').disabled = false;
             updateTurnIndicator();
         }
     }
 
     // 擲骰子
-    function rollDice() {
-        if (players.length === 0) return;
+    const diceFaces = ['⚀', '⚁', '⚂', '⚃', '⚄', '⚅'];
+
+    async function rollDice() {
+        if (players.length === 0 || gameEnded) return;
         const rollBtn = document.getElementById('rollBtn');
+        const diceDisplay = document.getElementById('diceDisplay');
         rollBtn.disabled = true;
 
         document.getElementById('deck-chance').classList.remove('highlight');
         document.getElementById('deck-fate').classList.remove('highlight');
 
-        let count = 0;
-        let rollInterval = setInterval(() => {
-            rollBtn.innerText = `🎲 擲骰中... ${Math.floor(Math.random() * 6) + 1}`;
-            count++;
-            if (count > 10) {
-                clearInterval(rollInterval);
-                
-                const diceRoll = Math.floor(Math.random() * 6) + 1; 
-                rollBtn.innerText = `🎲 擲出了 ${diceRoll} 步！`;
-                
-                let player = players[currentPlayerIndex];
-                player.position += diceRoll;
-                
-                if (player.position >= boardSpaces.length - 1) {
-                    player.position = boardSpaces.length - 1; 
-                }
+        // 1) 骰子跳動動畫，最後停在真正擲出的點數
+        diceDisplay.classList.add('dice-rolling');
+        for (let i = 0; i < 10; i++) {
+            const tempRoll = Math.floor(Math.random() * 6) + 1;
+            diceDisplay.innerText = diceFaces[tempRoll - 1];
+            rollBtn.innerText = `🎲 擲骰中... ${tempRoll}`;
+            await sleep(60);
+        }
+        diceDisplay.classList.remove('dice-rolling');
 
-                updateUI();
-                
-                const currentSpace = boardSpaces[player.position];
-                if (currentSpace.lat && currentSpace.lng) {
-                    updateMap(currentSpace.lat, currentSpace.lng);
-                }
-                
-                if (currentSpace.type === 'chance') {
-                    document.getElementById('deck-chance').classList.add('highlight');
-                } else if (currentSpace.type === 'fate') {
-                    document.getElementById('deck-fate').classList.add('highlight');
-                }
-                
-                setTimeout(() => {
-                    triggerEvent(player, player.position);
-                    currentPlayerIndex = (currentPlayerIndex + 1) % players.length;
-                    updateTurnIndicator();
-                    rollBtn.disabled = false;
-                    rollBtn.innerText = `🎲 擲骰子前進 (1-6步)`;
-                }, 1200);
-            }
-        }, 50);
+        const diceRoll = Math.floor(Math.random() * 6) + 1;
+        diceDisplay.innerText = diceFaces[diceRoll - 1];
+        rollBtn.innerText = `🎲 擲出了 ${diceRoll} 步！`;
+
+        let player = players[currentPlayerIndex];
+        const finishIndex = boardSpaces.length - 1; // 終點格（恰好停下才算抵達）
+        const newPosition = player.position + diceRoll;
+        const reachedFinish = (newPosition === finishIndex);
+
+        await sleep(500);
+
+        // 2) 一步一步往前走，讓玩家確實感受到經過的每一格
+        for (let step = 0; step < diceRoll; step++) {
+            player.position = (player.position + 1) % boardSpaces.length;
+            updateUI();
+            await sleep(380);
+        }
+
+        const currentSpace = boardSpaces[player.position];
+        if (currentSpace.lat && currentSpace.lng) {
+            updateMap(currentSpace.lat, currentSpace.lng);
+        }
+
+        if (currentSpace.type === 'chance') {
+            document.getElementById('deck-chance').classList.add('highlight');
+        } else if (currentSpace.type === 'fate') {
+            document.getElementById('deck-fate').classList.add('highlight');
+        }
+
+        await sleep(500);
+        triggerEvent(player, player.position);
+
+        if (reachedFinish) {
+            // 剛好停在終點：遊戲結束
+            gameEnded = true;
+            const turnIndicator = document.getElementById('turnIndicator');
+            turnIndicator.innerText = `🎉 遊戲結束！${player.name} 剛好抵達終點，完成這次走讀！`;
+            turnIndicator.style.color = 'var(--neon-purple)';
+            turnIndicator.style.textShadow = '0 0 8px var(--neon-purple)';
+            rollBtn.innerText = `🏁 遊戲已結束`;
+            rollBtn.disabled = true;
+        } else {
+            // 沒剛好停在終點：超過格數則繼續下一圈
+            currentPlayerIndex = (currentPlayerIndex + 1) % players.length;
+            updateTurnIndicator();
+            rollBtn.disabled = false;
+            rollBtn.innerText = `🎲 擲骰子前進 (1-6步)`;
+        }
     }
 
     // 更新地圖
@@ -641,7 +727,7 @@
 
         // 根據類型渲染 Modal 顏色與內容
         if (space.type === 'chance') {
-            const card = chanceCards[Math.floor(Math.random() * chanceCards.length)];
+            const card = drawUnique(chanceCards, usedChanceIndices);
             cardGraphic.innerText = `❓ 機 會 ❓\n\n${card.title}`;
             cardGraphic.style.border = '2px solid var(--u-orange)';
             cardGraphic.style.boxShadow = 'inset 0 0 15px rgba(242, 152, 68, 0.3), 0 0 10px rgba(242, 152, 68, 0.5)';
@@ -654,7 +740,7 @@
             answerTitle.style.color = 'var(--u-orange)';
             
         } else if (space.type === 'fate') {
-            const card = fateCards[Math.floor(Math.random() * fateCards.length)];
+            const card = drawUnique(fateCards, usedFateIndices);
             cardGraphic.innerText = `🔮 命 運 🔮\n\n${card.title}`;
             cardGraphic.style.border = '2px solid var(--u-white)';
             cardGraphic.style.boxShadow = 'inset 0 0 15px rgba(255, 255, 255, 0.3), 0 0 10px rgba(255, 255, 255, 0.5)';
@@ -667,17 +753,27 @@
             answerTitle.style.color = 'var(--u-white)';
             
         } else {
-            cardGraphic.innerText = `📍 走讀景點：\n\n${space.name.replace('<br>', '')}`;
-            
             if (space.type === 'start-end') {
+                cardGraphic.innerText = `📍 走讀景點：\n\n${space.name.replace('<br>', '')}`;
                 cardGraphic.style.border = '2px solid var(--neon-purple)';
                 cardGraphic.style.boxShadow = 'inset 0 0 15px rgba(180, 91, 255, 0.3), 0 0 10px rgba(180, 91, 255, 0.5)';
                 cardGraphic.style.color = 'var(--neon-purple)';
-                
+
                 showBtn.classList.add('btn-outline-purple');
                 answerBox.style.borderLeftColor = 'var(--neon-purple)';
                 answerTitle.style.color = 'var(--neon-purple)';
+
+                if (pos === 0) {
+                    document.getElementById('modalQuestion').innerText = '走讀起點 (Meander Taipei)：請設定大家今天的學習北極星與身心估點！';
+                    document.getElementById('modalAnswer').innerText = '設定不可觸犯的底線與期待。';
+                } else {
+                    document.getElementById('modalQuestion').innerText = '抵達終點 (CollaPlay)！現在讓我們進行最後的「復盤」，回顧今天的收穫。';
+                    document.getElementById('modalAnswer').innerText = '先望海再造船，共創理想的生活！';
+                }
             } else {
+                // 隨機抽取一個西門町推薦景點（與機會/命運抽卡邏輯相同）
+                const card = drawUnique(spotPool, usedSpotIndices);
+                cardGraphic.innerText = `📍 走讀景點：\n\n${card.name}`;
                 cardGraphic.style.border = '2px solid var(--neon-blue)';
                 cardGraphic.style.boxShadow = 'inset 0 0 15px rgba(0, 229, 255, 0.3), 0 0 10px rgba(0, 229, 255, 0.5)';
                 cardGraphic.style.color = 'var(--neon-blue)';
@@ -685,27 +781,11 @@
                 showBtn.classList.add('btn-outline-blue');
                 answerBox.style.borderLeftColor = 'var(--neon-blue)';
                 answerTitle.style.color = 'var(--neon-blue)';
-            }
-            
-            if (pos === 0) {
-                document.getElementById('modalQuestion').innerText = '走讀起點 (Meander Taipei)：請設定大家今天的學習北極星與身心估點！';
-                document.getElementById('modalAnswer').innerText = '設定不可觸犯的底線與期待。';
-            } else if (pos === 15) {
-                document.getElementById('modalQuestion').innerText = '抵達終點 (CollaPlay)！現在讓我們進行最後的「復盤」，回顧今天的收穫。';
-                document.getElementById('modalAnswer').innerText = '先望海再造船，共創理想的生活！';
-            } else {
-                const spotQuestions = {
-                    '西門紅樓': { q: '這棟古蹟是由八角樓與十字樓組成，在建築設計上蘊含什麼東、西方的文化祈福意涵？', a: '八卦與十字架在東西方分別代表祈福與驅邪，是新舊與多元文化融合的象徵。' },
-                    '西門電影街': { q: '全盛時期武昌街有十幾家影城。這種高度密集的「電影一條街」反映了台北什麼時代的發展？', a: '1960年代隨中華商場落成，此地注入大量娛樂資本，成為全國最大的育樂活動中心。' },
-                    '美國街塗鴉': { q: '昆明街巷弄內滿牆的潮牌、塗鴉藝術。這種非官方、由下而上的街頭文化重新定義了什麼空間？', a: '西門町就像青色組織般的「一時自律地帶」，是年輕人展現自我、包容邊緣文化的主場。' },
-                    '台北天后宮': { q: '這棟媽祖廟高懸在成都路商圈縫隙中，且罕見地合祀了日本真言宗的「弘法大師」。這背後有何溫情？', a: '戰後信徒接入舊址時，細心保留了日僧留下來的大師像，體現了宗教與跨文化的緻密調和。' },
-                    '6號彩虹<br>路面': { q: '西門站6號出口著名的「6號彩虹」地景。除了吸引觀光客，它代表了這座城市對LGBTQ+社群的什麼宣言？', a: '2019年同婚合法化的實體宣言，西門町的開放性更是象徵著打破性別邊界的多元包容。' },
-                    '萬年商業<br>大樓': { q: '落成於1973年的老商場，地下室藏有連續榮獲米其林必比登的「老山東牛肉麵」。這地方如何兼顧歷史與潮流？', a: '它是台北青少年的潮流聖地，同時也動態保留了外省移民的鄉愁記憶在現代消費空間中。' },
-                    '電影主題<br>公園': { q: '電影主題公園其實不是因為電影院而得名。這裡的前身是日治時期成立的什麼工廠？園內又保留了哪些工業遺址？', a: '前身是1934年成立的「台灣瓦斯株式會社」，公園保留了老磚造廠房、煙囪與煉焦爐等設施，轉型結合塗鴉、滑板、戶外電影放映的青少年文化空間。' }
-                };
-                let sq = spotQuestions[space.name] || { q: '歡迎來到此走讀點，請分享小組對這裡的觀察！', a: '用心體會，化枝葉為林相。' };
-                document.getElementById('modalQuestion').innerText = sq.q;
-                document.getElementById('modalAnswer').innerText = sq.a;
+
+                document.getElementById('modalQuestion').innerText = card.q;
+                document.getElementById('modalAnswer').innerText = card.a;
+
+                if (card.lat && card.lng) updateMap(card.lat, card.lng);
             }
         }
 
