@@ -434,6 +434,24 @@
 
         .btn-outline-purple { color: var(--neon-purple); border: 2px solid var(--neon-purple); }
         .btn-outline-purple:hover { background: var(--neon-purple); color: #000; box-shadow: 0 0 15px var(--neon-purple); }
+
+        .standalone-btn {
+            flex: 1;
+            padding: 10px 14px;
+            background-color: transparent;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 1em;
+            transition: all 0.3s ease;
+        }
+        .standalone-btn:disabled {
+            border-color: var(--u-dark-gray) !important;
+            color: var(--u-dark-gray) !important;
+            box-shadow: none !important;
+            background-color: transparent !important;
+            cursor: not-allowed;
+        }
     </style>
 </head>
 <body>
@@ -464,6 +482,11 @@
             <p id="turnIndicator" style="font-weight: bold; color: #fff; font-size: 1.15em; margin-bottom: 15px;">請先加入玩家！</p>
             <div id="diceDisplay" style="font-size: 3.2em; text-align: center; margin-bottom: 10px; min-height: 1.2em; color: var(--neon-green); text-shadow: 0 0 12px rgba(61,255,61,0.6);">🎲</div>
             <button id="rollBtn" class="btn-green" onclick="rollDice()" style="width: 100%; padding: 15px; font-size: 1.2em;" disabled>🎲 擲骰子前進</button>
+
+            <div style="display: flex; gap: 10px; margin-top: 12px;">
+                <button id="endGameBtn" class="standalone-btn btn-outline-orange" onclick="endGameManually()">🏁 結束遊戲</button>
+                <button id="exportBtn" class="standalone-btn btn-outline-blue" onclick="exportHistory()">⬇️ 匯出紀錄</button>
+            </div>
         </div>
 
         <div class="panel-box" id="historyBox">
@@ -726,6 +749,7 @@
             turnIndicator.style.textShadow = '0 0 8px var(--neon-purple)';
             rollBtn.innerText = `🏁 遊戲已結束`;
             rollBtn.disabled = true;
+            document.getElementById('endGameBtn').disabled = true;
         } else {
             // 沒剛好停在終點：超過格數則繼續下一圈
             currentPlayerIndex = (currentPlayerIndex + 1) % players.length;
@@ -979,6 +1003,74 @@
         `).join('');
 
         logEl.scrollTop = logEl.scrollHeight;
+    }
+
+    // 手動結束遊戲（不一定要剛好停在終點，主辦方隨時可以結束）
+    function endGameManually() {
+        if (gameEnded) return;
+        if (players.length === 0) {
+            alert('還沒有玩家加入，無法結束遊戲喔！');
+            return;
+        }
+        const confirmed = confirm('確定要提前結束遊戲嗎？結束後將無法再擲骰子前進。');
+        if (!confirmed) return;
+
+        gameEnded = true;
+
+        const rollBtn = document.getElementById('rollBtn');
+        rollBtn.disabled = true;
+        rollBtn.innerText = '🏁 遊戲已結束';
+
+        document.getElementById('endGameBtn').disabled = true;
+
+        const turnIndicator = document.getElementById('turnIndicator');
+        turnIndicator.innerText = '🏁 遊戲已手動結束，感謝大家的走讀！';
+        turnIndicator.style.color = 'var(--neon-purple)';
+        turnIndicator.style.textShadow = '0 0 8px var(--neon-purple)';
+    }
+
+    // 匯出所有玩家的路線紀錄為文字檔
+    function exportHistory() {
+        if (players.length === 0) {
+            alert('目前還沒有玩家資料，無法匯出！');
+            return;
+        }
+
+        const lines = [];
+        lines.push('2026貍想教育節｜西門町走讀大富翁 — 路線紀錄匯出');
+        lines.push(`匯出時間：${new Date().toLocaleString('zh-TW')}`);
+        lines.push('='.repeat(40));
+
+        players.forEach(p => {
+            lines.push('');
+            lines.push(`玩家：${p.name}　｜　身心估點：${p.energy}　｜　方石：${p.stones}`);
+            lines.push('-'.repeat(30));
+
+            if (p.history.length === 0) {
+                lines.push('（尚無走讀紀錄）');
+            } else {
+                p.history.forEach(entry => {
+                    lines.push(`第${entry.step}步｜${entry.icon} ${entry.label}`);
+                    if (entry.detail) {
+                        lines.push(`　　${entry.detail}`);
+                    }
+                });
+            }
+        });
+
+        const content = lines.join('\n');
+        // 加上 UTF-8 BOM，避免用 Excel/記事本開啟時中文變亂碼
+        const blob = new Blob(['\uFEFF' + content], { type: 'text/plain;charset=utf-8' });
+        const url = URL.createObjectURL(blob);
+
+        const a = document.createElement('a');
+        a.href = url;
+        const dateStr = new Date().toISOString().slice(0, 10);
+        a.download = `西門町走讀紀錄_${dateStr}.txt`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
     }
 
 </script>
